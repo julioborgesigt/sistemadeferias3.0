@@ -132,9 +132,20 @@ body {
   max-width: 420px;
 }
 
+/* ==============================================
+   Fundo preto para as letras das tabelas
+   ============================================== */
+
 .badge.bg-success-subtle.text-success-emphasis {
     color: var(--bs-success-text-emphasis) !important;
 }
+
+@media (max-width: 992px) {
+  .badge.bg-success-subtle.text-success-emphasis {
+    color: var(--bs-success-text-emphasis) !important;
+}
+}
+
 
 /* ==============================================
    AJUSTES FINAIS NO CALENDÁRIO ANUAL
