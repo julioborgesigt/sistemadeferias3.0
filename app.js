@@ -58,7 +58,7 @@ app.get('/', (req, res) => {
     res.redirect('/auth/login');
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3010;
 db.sequelize.sync()
   .then(() => {
     app.listen(PORT, () => {
