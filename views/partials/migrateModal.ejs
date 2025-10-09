@@ -1,0 +1,35 @@
+<div class="modal fade" id="migrateModal" tabindex="-1" aria-labelledby="migrateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-primary">
+        <form action="/users/migrate" method="POST">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="migrateModalLabel">
+              <i class="bi bi-cloud-arrow-up-fill me-2"></i>Migrar Base de Dados
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <p class="small text-muted">Esta ação irá copiar os registros de usuários (sem as férias) de um ano de origem para um ano de destino. Se um usuário já existir no destino, seus dados serão atualizados.</p>
+            
+            <div class="mb-3">
+              <label for="sourceYear" class="form-label"><strong>Ano de Origem:</strong></label>
+              <input type="number" class="form-control form-control-sm" id="sourceYear" name="sourceYear" required placeholder="Ex: <%= new Date().getFullYear() - 1 %>" min="2000">
+            </div>
+            
+            <div class="mb-3">
+              <label for="targetYear" class="form-label"><strong>Ano de Destino:</strong></label>
+              <input type="number" class="form-control form-control-sm" id="targetYear" name="targetYear" required placeholder="Ex: <%= new Date().getFullYear() %>" min="2000">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              <i class="bi bi-x-circle"></i> Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-cloud-arrow-up"></i> Iniciar Migração
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+</div>

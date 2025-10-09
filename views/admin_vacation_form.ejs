@@ -1,0 +1,96 @@
+<%- include('partials/header', { title: 'Cadastrar Férias' }) %>
+
+<div class="custom-container">
+    <%- include('partials/flashMessages') %>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h4 class="mb-0"><i class="bi bi-calendar-plus-fill me-2"></i>Cadastro de Férias (Admin)</h4>
+        </div>
+        <div class="card-body">
+            <form action="/vacations/admin-mark" method="POST">
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label for="matricula" class="form-label">Usuário:</label>
+                        <input type="text" name="matricula" id="matricula" class="form-control" 
+                               placeholder="Clique para selecionar" required readonly 
+                               value="<%= old.matricula || '' %>" style="cursor: pointer;"
+                               data-bs-toggle="offcanvas" data-bs-target="#offcanvasUsers">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="ano_referencia" class="form-label">Ano de Referência:</label>
+                        <input type="number" name="ano_referencia" id="ano_referencia" class="form-control" 
+                               value="<%= old.ano_referencia || new Date().getFullYear() %>" required readonly>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="qtd_periodos" class="form-label">Divisão:</label>
+                        <select name="qtd_periodos" id="qtd_periodos" class="form-select">
+                            <option value="1" <%= old.qtd_periodos === '1' ? 'selected' : '' %>>1 Período (30 dias)</option>
+                            <option value="2_15_15" <%= old.qtd_periodos === '2_15_15' ? 'selected' : '' %>>2 Períodos (15+15)</option>
+                            <option value="2_10_20" <%= old.qtd_periodos === '2_10_20' ? 'selected' : '' %>>2 Períodos (10+20)</option>
+                            <option value="2_20_10" <%= old.qtd_periodos === '2_20_10' ? 'selected' : '' %>>2 Períodos (20+10)</option>
+                            <option value="3" <%= old.qtd_periodos === '3' ? 'selected' : '' %>>3 Períodos (10+10+10)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="periodos-container">
+                    <% for(let i = 1; i <= 3; i++) { %>
+                    <div id="periodo<%= i %>_container" class="period-container mb-3" style="display: none;">
+                        <h5>Período <%= i %></h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="periodo<%= i %>_inicio" class="form-label">Data de Início:</label>
+                                <input type="date" name="periodo<%= i %>_inicio" id="periodo<%= i %>_inicio" class="form-control"
+                                       value="<%= old[`periodo${i}_inicio`] || '' %>">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="periodo<%= i %>_fim" class="form-label">Data de Fim:</label>
+                                <input type="date" name="periodo<%= i %>_fim" id="periodo<%= i %>_fim" class="form-control"
+                                       value="<%= old[`periodo${i}_fim`] || '' %>">
+                            </div>
+                        </div>
+                    </div>
+                    <% } %>
+                </div>
+            
+        </div>
+        <div class="card-footer text-end">
+            <a href="/users/dashboard" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle-fill me-2"></i>Cadastrar Férias
+            </button>
+        </div>
+        </form>
+    </div>
+</div>
+
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasUsers" aria-labelledby="offcanvasUsersLabel">
+  <div class="offcanvas-header">
+    <h5 id="offcanvasUsersLabel">Selecione um Usuário</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    <input type="text" id="user-search-input" class="form-control mb-3" placeholder="Buscar por nome ou matrícula...">
+    <ul class="list-group" id="user-list">
+      <% if (users && users.length > 0) { %>
+        <% users.forEach(function(u) { %>
+          <li class="list-group-item list-group-item-action user-item" 
+              style="cursor: pointer;"
+              data-matricula="<%= u.matricula %>" 
+              data-ano="<%= u.ano_referencia %>"
+              data-nome="<%= u.nome %>">
+            <strong><%= u.nome %></strong><br>
+            <small class="text-muted">Matrícula: <%= u.matricula %> | Ano: <%= u.ano_referencia %></small>
+          </li>
+        <% }); %>
+      <% } else { %>
+        <li class="list-group-item">Nenhum usuário sem férias cadastradas foi encontrado.</li>
+      <% } %>
+    </ul>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,43 @@
+<%- include('partials/header', { title: 'Opções de Calendário' }) %>
+
+<div class="custom-container">
+    <div class="card shadow-sm text-center">
+        <div class="card-header">
+            <h4 class="mb-0"><i class="bi bi-calendar-heart-fill me-2"></i>Calendário de Férias</h4>
+        </div>
+        <div class="card-body p-4">
+            <p class="card-text text-muted">Selecione o grupo de categorias e o ano que deseja visualizar.</p>
+            
+            <div class="row justify-content-center g-3 mt-3">
+                <% 
+                    const currentYear = new Date().getFullYear();
+                    const years = [currentYear, currentYear + 1, currentYear + 2];
+                    const groups = [
+                        { category: ["IPC", "IPC-P"], btnClass: "btn-primary", display: "Grupo IPC" },
+                        { category: ["EPC", "EPC-P"], btnClass: "btn-success", display: "Grupo EPC" },
+                        { category: ["DPC", "DPC-P"], btnClass: "btn-danger", display: "Grupo DPC" }
+                    ];
+
+                    years.forEach(year => {
+                %>
+                    <div class="col-12">
+                        <h5>Ano de <%= year %></h5>
+                        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                            <% groups.forEach(group => { %>
+                                <a href="/vacations/year-calendar?year=<%= year %><%= group.category.map(cat => '&category=' + encodeURIComponent(cat)).join('') %>" 
+                                   class="btn <%= group.btnClass %>">
+                                    <%= group.display %>
+                                </a>
+                            <% }); %>
+                        </div>
+                    </div>
+                    <% if (year < years[years.length - 1]) { %>
+                        <hr class="my-3">
+                    <% } %>
+                <% }); %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

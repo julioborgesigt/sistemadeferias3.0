@@ -1,0 +1,200 @@
+<%- include('partials/header', { title: 'Dashboard do Administrador' }) %>
+<%- include('partials/flashMessages') %>
+
+<%- include('partials/configLimitsModal', { settings: settings }) %>
+<%- include('partials/deleteUserModal') %>
+<%- include('partials/resetVacationsModal') %>
+<%- include('partials/migrateModal') %>
+<%- include('partials/editUsuarioModal') %>
+<%- include('partials/editFeriasModal') %>
+
+<div class="row mb-4">
+    <div class="col-12 col-lg-7 mb-4 mb-lg-0">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-bar-chart-line-fill me-2"></i>Tabela de Limites</h5>
+            </div>
+            <div class="card-body">
+                <%
+                  const currentYear = new Date().getFullYear();
+                  let totals = { IPC: 0, 'IPC-P': 0, EPC: 0, 'EPC-P': 0, DPC: 0, 'DPC-P': 0 };
+                  users.forEach(u => {
+                    if (u.ano_referencia == currentYear && totals.hasOwnProperty(u.categoria)) {
+                      totals[u.categoria]++;
+                    }
+                  });
+                %>
+                <div class="table-responsive small">
+                    <table class="table table-bordered text-center styled-table">
+                        <thead>
+                            <tr>
+                                <th>Atributo</th>
+                                <th>IPC</th>
+                                <th>IPC‑P</th>
+                                <th>EPC</th>
+                                <th>EPC‑P</th>
+                                <th>DPC</th>
+                                <th>DPC‑P</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Limite Indiv.</td>
+                                <td><%= settings.max_ipc %></td>
+                                <td><%= settings.max_ipc_p %></td>
+                                <td><%= settings.max_epc %></td>
+                                <td><%= settings.max_epc_p %></td>
+                                <td><%= settings.max_dpc %></td>
+                                <td><%= settings.max_dpc_p %></td>
+                            </tr>
+                            <tr>
+                                <td>Limite Grupo</td>
+                                <td colspan="2"><%= settings.max_ipc_t %></td>
+                                <td colspan="2"><%= settings.max_epc_t %></td>
+                                <td colspan="2"><%= settings.max_dpc_t %></td>
+                            </tr>
+                            <tr>
+                                <td>Cadastrados (<%= currentYear %>)</td>
+                                <td><%= totals.IPC %></td>
+                                <td><%= totals['IPC-P'] %></td>
+                                <td><%= totals.EPC %></td>
+                                <td><%= totals['EPC-P'] %></td>
+                                <td><%= totals.DPC %></td>
+                                <td><%= totals['DPC-P'] %></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-funnel-fill me-2"></i>Filtros de Exibição</h5>
+            </div>
+            <div class="card-body filter-container">
+                <div class="row g-2">
+                    <div class="col-sm-6">
+                        <label for="filter-nome" class="form-label">Nome:</label>
+                        <input type="text" id="filter-nome" class="form-control form-control-sm" placeholder="Filtrar por nome">
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="filter-matricula" class="form-label">Matrícula:</label>
+                        <input type="text" id="filter-matricula" class="form-control form-control-sm" placeholder="Filtrar por matrícula">
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="filter-ano" class="form-label">Ano:</label>
+                        <select id="filter-ano" class="form-select form-select-sm">
+                            <option value="">Todos</option>
+                            <% distinctYears.forEach(ano => { %>
+                                <option value="<%= ano %>" <%= ano == new Date().getFullYear() ? 'selected' : '' %>><%= ano %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="filter-mes" class="form-label">Mês (Férias):</label>
+                        <select id="filter-mes" class="form-select form-select-sm">
+                            <option value="">Todos</option>
+                            <option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option>
+                            <option value="04">Abr</option><option value="05">Mai</option><option value="06">Jun</option>
+                            <option value="07">Jul</option><option value="08">Ago</option><option value="09">Set</option>
+                            <option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%
+  const ipcUsers = users.filter(u => u.categoria === 'IPC' || u.categoria === 'IPC-P');
+  const epcUsers = users.filter(u => u.categoria === 'EPC' || u.categoria === 'EPC-P');
+  const dpcUsers = users.filter(u => u.categoria === 'DPC' || u.categoria === 'DPC-P');
+  const tables = [
+      { title: 'Classificação dos IPCs', id: 'ipcTable', users: ipcUsers, downloadId: 'ipc' },
+      { title: 'Classificação dos EPCs', id: 'epcTable', users: epcUsers, downloadId: 'epc' },
+      { title: 'Classificação dos DPCs', id: 'dpcTable', users: dpcUsers, downloadId: 'dpc' }
+  ];
+%>
+
+<% tables.forEach(table => { %>
+<div class="card shadow-sm mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0"><i class="bi bi-list-ol me-2"></i><%= table.title %></h5>
+        <div>
+            <button class="btn btn-outline-secondary btn-sm" id="download-<%= table.downloadId %>">
+                <i class="bi bi-file-earmark-pdf"></i> PDF
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" id="download-simplificado-<%= table.downloadId %>">
+                <i class="bi bi-file-earmark-zip"></i> PDF Simplificado
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive small">
+            <table class="table classification-table table-hover" id="<%= table.id %>">
+                <thead class="table-light">
+                    <tr>
+                        <th class="hide-mobile">ID</th>
+                        <th>Nº</th>
+                        <th>Nome</th>
+                        <th class="hide-mobile">Matrícula</th>
+                        <th class="hide-mobile">Cargo</th>
+                        <th class="hide-mobile">Ano</th>
+                        <th class="hide-mobile" title="Gestante">Gest.</th>
+                        <th class="hide-mobile" title="Qtd. Filhos">Filhos</th>
+                        <th class="hide-mobile" title="Estudante">Estud.</th>
+                        <th class="hide-mobile" title="Dois Vínculos">2 Vínc.</th>
+                        <th class="hide-mobile" title="Cônjuge Servidor">Cônj.</th>
+                        <th class="hide-mobile">Antig. (Dias)</th>
+                        <th class="hide-mobile">Idade (Dias)</th>
+                        <th>Férias</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% table.users.forEach(user => { %>
+                        <tr data-nome="<%= user.nome.toLowerCase() %>" data-matricula="<%= user.matricula %>" data-ano="<%= user.ano_referencia %>" data-mes-ferias="<%= user.Vacations.map(v => new Date(v.data_inicio).toISOString().split('-')[1]).join(',') %>">
+                            <td class="hide-mobile"><%= user.id %></td>
+                            <td><%= user.classificacao %></td>
+                            <td><%= user.nome %></td>
+                            <td class="hide-mobile"><%= user.matricula %></td>
+                            <td class="hide-mobile"><%= user.categoria %></td>
+                            <td class="hide-mobile"><%= user.ano_referencia %></td>
+                            <td class="hide-mobile"><%= user.gestante ? 'Sim' : 'Não' %></td>
+                            <td class="hide-mobile"><%= user.qtd_filhos %></td>
+                            <td class="hide-mobile"><%= user.estudante ? 'Sim' : 'Não' %></td>
+                            <td class="hide-mobile"><%= user.doisvinculos ? 'Sim' : 'Não' %></td>
+                            <td class="hide-mobile"><%= user.possui_conjuge ? 'Sim' : 'Não' %></td>
+                            <td class="hide-mobile"><%= user.data_ingresso_dias %></td>
+                            <td class="hide-mobile"><%= user.data_nascimento_dias %></td>
+                            <td>
+                                <% if (user.Vacations && user.Vacations.length > 0) { %>
+                                    <% user.Vacations.forEach(vac => { %>
+                                        <span class="badge bg-success-subtle text-success-emphasis rounded-pill"><%= formatDate(vac.data_inicio) %> a <%= formatDate(vac.data_fim) %></span>
+                                    <% }); %>
+                                <% } else { %>
+                                    <span class="text-muted">Nenhuma</span>
+                                <% } %>
+                            </td>
+                            <td>
+                                <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#editUsuarioModal" data-matricula="<%= user.matricula %>" data-ano="<%= user.ano_referencia %>" title="Alterar Perfil do Usuário">
+                                    <i class="bi bi-person-fill-gear"></i>
+                                </button>
+                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editFeriasModal" data-matricula="<%= user.matricula %>" data-ano="<%= user.ano_referencia %>" title="Alterar Férias">
+                                    <i class="bi bi-calendar2-week-fill"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<% }); %>
+
+<%- include('partials/footer') %>

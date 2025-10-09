@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= typeof title !== 'undefined' ? title : 'Sistema de Férias' %></title>
+  <link href="/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/bootstrap-icons.css" rel="stylesheet">
+  <link href="/css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+  <nav class="navbar navbar-dark bg-primary">
+    <div class="container-fluid" style="max-width: 1400px;">
+      
+      <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <a class="navbar-brand mx-auto" href="/">Sistema de Férias</a>
+
+      <div class="navbar-toggler" style="visibility: hidden;">
+        <span class="navbar-toggler-icon"></span>
+      </div>
+
+      <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
+          <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+            
+            <li class="nav-item">
+              <a class="nav-link" href="/"><i class="bi bi-house-door-fill me-2"></i>Início</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/vacations/calendar-options"><i class="bi bi-calendar-event me-2"></i>Calendário</a>
+            </li>
+
+            <% if (admin) { %>
+              <li class="nav-item">
+                <a class="nav-link" href="/users/dashboard"><i class="bi bi-speedometer2 me-2"></i>Dashboard Admin</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/users/register"><i class="bi bi-person-plus-fill me-2"></i>Cadastrar Usuário</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/vacations/admin-form"><i class="bi bi-calendar-plus me-2"></i>Cadastrar Férias</a>
+              </li>
+              <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" id="adminToolsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="bi bi-tools me-2"></i>Ferramentas
+                  </a>
+                  <ul class="dropdown-menu" aria-labelledby="adminToolsDropdown">
+                      <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#configLimitsModal">Configurar Limites</a></li>
+                      <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#resetVacationsModal">Resetar Férias</a></li>
+                      <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#deleteUserModal">Apagar Matrícula</a></li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#migrateModal">Migrar Dados</a></li>
+                  </ul>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/classification"><i class="bi bi-list-ol me-2"></i>Ver Classificação Geral</a>
+              </li>
+
+              <li class="nav-item">
+                <a class="nav-link" href="/auth/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+              </li>
+            <% } else { %>
+              <li class="nav-item">
+                <a class="nav-link" href="/auth/login"><i class="bi bi-shield-lock-fill me-2"></i>Login Admin</a>
+              </li>
+            <% } %>
+
+          </ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container mt-4" style="max-width: 1400px;">

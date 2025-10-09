@@ -1,0 +1,60 @@
+<div class="container-fluid">
+    <div class="text-center mb-3">
+        <h4>Editando Férias de <%= user.nome %></h4>
+        <p class="text-muted">Ano de Referência: <%= user.ano_referencia %></p>
+    </div>
+
+    <form id="editVacationForm" action="/vacations/edit/<%= user.matricula %>/<%= user.ano_referencia %>" method="POST">
+        
+        <%
+            // Lógica para determinar a opção selecionada no dropdown
+            let selectedQtd = '1'; // Padrão
+            if (ferias.length === 3) {
+                selectedQtd = '3';
+            } else if (ferias.length === 2) {
+                const dur1 = (new Date(ferias[1].data_fim) - new Date(ferias[1].data_inicio)) / (1000 * 3600 * 24) + 1;
+                const dur0 = (new Date(ferias[0].data_fim) - new Date(ferias[0].data_inicio)) / (1000 * 3600 * 24) + 1;
+                selectedQtd = `2_${dur0}_${dur1}`;
+            } else if (ferias.length === 1) {
+                selectedQtd = '1';
+            }
+        %>
+
+        <div class="mb-4">
+            <label for="qtd_periodos" class="form-label"><strong>Alterar Divisão:</strong></label>
+            <select name="qtd_periodos" id="qtd_periodos" class="form-select">
+                <option value="1" <%= selectedQtd === '1' ? 'selected' : '' %>>1 Período (30 dias)</option>
+                <option value="2_15_15" <%= selectedQtd === '2_15_15' ? 'selected' : '' %>>2 Períodos (15+15)</option>
+                <option value="2_10_20" <%= selectedQtd === '2_10_20' ? 'selected' : '' %>>2 Períodos (10+20)</option>
+                <option value="2_20_10" <%= selectedQtd === '2_20_10' ? 'selected' : '' %>>2 Períodos (20+10)</option>
+                <option value="3" <%= selectedQtd === '3' ? 'selected' : '' %>>3 Períodos (10+10+10)</option>
+            </select>
+        </div>
+
+        <div id="periodos-container">
+            <% for(let i = 1; i <= 3; i++) { %>
+            <div id="periodo<%= i %>_container" class="period-container mb-3" style="display: none;">
+                <h5>Período <%= i %></h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="periodo<%= i %>_inicio" class="form-label">Data de Início:</label>
+                        <input type="date" name="periodo<%= i %>_inicio" id="periodo<%= i %>_inicio" class="form-control"
+                               value="<%= ferias[i-1] ? ferias[i-1].data_inicio_iso : '' %>">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="periodo<%= i %>_fim" class="form-label">Data de Fim:</label>
+                        <input type="date" name="periodo<%= i %>_fim" id="periodo<%= i %>_fim" class="form-control"
+                               value="<%= ferias[i-1] ? ferias[i-1].data_fim_iso : '' %>">
+                    </div>
+                </div>
+            </div>
+            <% } %>
+        </div>
+
+        <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-warning">
+                <i class="bi bi-save-fill me-2"></i>Salvar Alterações
+            </button>
+        </div>
+    </form>
+</div>

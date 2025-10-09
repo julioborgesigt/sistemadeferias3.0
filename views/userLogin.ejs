@@ -1,0 +1,26 @@
+<%- include('partials/header', { title: 'Acesso Público' }) %>
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 50vh;">
+    <div class="card shadow-sm text-center" style="max-width: 500px;">
+        <div class="card-header">
+            <h4 class="mb-0"><i class="bi bi-search me-2"></i>Consulta de Férias</h4>
+        </div>
+        <div class="card-body p-4">
+            <p class="card-text text-muted">Use os links abaixo para acessar as áreas públicas do sistema.</p>
+            
+            <div class="list-group">
+                <a href="/vacations/calendar-options" class="list-group-item list-group-item-action">
+                    <i class="bi bi-calendar-event me-2"></i>Ver Calendário de Férias
+                </a>
+                <a href="/classification" class="list-group-item list-group-item-action">
+                    <i class="bi bi-list-ol me-2"></i>Ver Classificação Geral
+                </a>
+                <a href="/auth/login" class="list-group-item list-group-item-action list-group-item-secondary">
+                    <i class="bi bi-shield-lock-fill me-2"></i>Acessar como Administrador
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,123 @@
+<%- include('partials/header', { title: 'Cadastro de Usuário' }) %>
+
+<div class="custom-container">
+    <%- include('partials/flashMessages') %>
+
+    <form action="/users/register" method="POST">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i>Cadastro de Novo Usuário</h4>
+            </div>
+            <div class="card-body">
+                
+                <h5 class="card-title">Dados Pessoais</h5>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label for="matricula" class="form-label">Matrícula:</label>
+                        <input type="text" name="matricula" id="matricula" class="form-control" value="<%= old.matricula || '' %>" required maxlength="8">
+                    </div>
+                    <div class="col-md-8">
+                        <label for="nome" class="form-label">Nome Completo:</label>
+                        <input type="text" name="nome" id="nome" class="form-control" value="<%= old.nome || '' %>" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="categoria" class="form-label">Categoria:</label>
+                        <select name="categoria" class="form-select" required>
+                            <option value="IPC" <%= old.categoria === 'IPC' ? 'selected' : '' %>>IPC</option>
+                            <option value="IPC-P" <%= old.categoria === 'IPC-P' ? 'selected' : '' %>>IPC-P</option>
+                            <option value="EPC" <%= old.categoria === 'EPC' ? 'selected' : '' %>>EPC</option>
+                            <option value="EPC-P" <%= old.categoria === 'EPC-P' ? 'selected' : '' %>>EPC-P</option>
+                            <option value="DPC" <%= old.categoria === 'DPC' ? 'selected' : '' %>>DPC</option>
+                            <option value="DPC-P" <%= old.categoria === 'DPC-P' ? 'selected' : '' %>>DPC-P</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">Ano de Referência:</label>
+                        <div class="btn-group w-100" role="group">
+                            <button type="button" class="btn btn-outline-primary" id="btn-ano-anterior"></button>
+                            <button type="button" class="btn btn-outline-primary active" id="btn-ano-atual"></button>
+                            <button type="button" class="btn btn-outline-primary" id="btn-ano-proximo"></button>
+                        </div>
+                        <input type="hidden" name="ano_referencia" id="ano_referencia">
+                    </div>
+                </div>
+
+                <hr>
+
+                <h5 class="card-title mt-3">Critérios de Classificação</h5>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input type="checkbox" name="gestante" class="form-check-input" id="gestante" <%= old.gestante ? 'checked' : '' %>>
+                            <label for="gestante" class="form-check-label">Está gestante?</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input type="checkbox" name="doisvinculos" class="form-check-input" id="doisvinculos" <%= old.doisvinculos ? 'checked' : '' %>>
+                            <label for="doisvinculos" class="form-check-label">Possui dois vínculos?</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input type="checkbox" name="estudante" class="form-check-input" id="estudante" <%= old.estudante ? 'checked' : '' %>>
+                            <label for="estudante" class="form-check-label">É estudante (nível técnico/superior)?</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input type="checkbox" name="possui_conjuge" class="form-check-input" id="possui_conjuge" <%= old.possui_conjuge ? 'checked' : '' %>>
+                            <label for="possui_conjuge" class="form-check-label">Possui cônjuge servidor público?</label>
+                        </div>
+                    </div>
+                     <div class="col-md-6">
+                        <label for="qtd_filhos" class="form-label">Qtd. de filhos em idade escolar:</label>
+                        <input type="number" name="qtd_filhos" id="qtd_filhos" class="form-control" value="<%= old.qtd_filhos || 0 %>" min="0">
+                    </div>
+                </div>
+
+                <hr>
+                
+                <h5 class="card-title mt-3">Datas Importantes</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="data_nascimento" class="form-label">Data de Nascimento:</label>
+                        <input type="date" name="data_nascimento" id="data_nascimento" class="form-control" value="<%= old.data_nascimento || '' %>" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="data_ingresso" class="form-label">Data de Ingresso:</label>
+                        <div class="input-group">
+                            <input type="date" name="data_ingresso" id="data_ingresso" class="form-control" value="<%= old.data_ingresso || '' %>" required>
+                            <button type="button" class="btn btn-outline-secondary" id="btnSelecionarData" title="Selecionar de uma lista de datas existentes">
+                                <i class="bi bi-calendar-event"></i>
+                            </button>
+                        </div>
+                         <ul id="listaDatas" class="list-group mt-1" style="display: none; position: absolute; z-index: 10; max-height: 200px; overflow-y: auto;">
+                            <% distinctDates.forEach(dateObj => { %>
+                                <li class="list-group-item list-group-item-action selecionar-data" style="cursor: pointer;">
+                                    <%= new Date(dateObj.data_ingresso).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) %>
+                                </li>
+                            <% }); %>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="periodo_aquisitivo_inicio" class="form-label">Início do Período Aquisitivo:</label>
+                        <input type="date" name="periodo_aquisitivo_inicio" id="periodo_aquisitivo_inicio" class="form-control" value="<%= old.periodo_aquisitivo_inicio || '' %>" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="periodo_aquisitivo_fim" class="form-label">Fim do Período Aquisitivo:</label>
+                        <input type="date" name="periodo_aquisitivo_fim" id="periodo_aquisitivo_fim" class="form-control" value="<%= old.periodo_aquisitivo_fim || '' %>" required>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-end">
+                <a href="/users/dashboard" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle-fill me-2"></i>Cadastrar Usuário
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<%- include('partials/footer') %>

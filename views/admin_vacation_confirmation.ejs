@@ -1,0 +1,25 @@
+<%- include('partials/header', { title: 'Férias Cadastradas' }) %>
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 50vh;">
+    <div class="card shadow-sm text-center" style="max-width: 500px;">
+        <div class="card-body p-4">
+            <%- include('partials/flashMessages') %>
+
+            <i class="bi bi-calendar-check-fill text-success" style="font-size: 3rem;"></i>
+            <h2 class="card-title mt-3">Férias Cadastradas!</h2>
+            
+            <p class="text-muted">Os períodos de férias foram registrados no sistema com sucesso.</p>
+            
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mt-4">
+                <a href="/vacations/admin-form" class="btn btn-primary">
+                    <i class="bi bi-calendar-plus-fill me-2"></i>Cadastrar Mais Férias
+                </a>
+                <a href="/users/dashboard" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left-circle me-2"></i>Voltar ao Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

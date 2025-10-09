@@ -1,0 +1,29 @@
+<% 
+  // Garante que as mensagens sejam tratadas como strings, mesmo que venham como arrays do connect-flash
+  const successMessage = Array.isArray(success_msg) && success_msg.length > 0 ? success_msg[0] : (typeof success_msg === 'string' ? success_msg : null);
+  const errorMessage = Array.isArray(error_msg) && error_msg.length > 0 ? error_msg[0] : (typeof error_msg === 'string' ? error_msg : null);
+%>
+
+<% if (successMessage && successMessage.trim()) { %>
+  <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1056;">
+    <div class="toast toast-progress toast-success border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body"><%= successMessage %></div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
+      </div>
+      <div class="toast-progress-bar"></div>
+    </div>
+  </div>
+<% } %>
+
+<% if (errorMessage && errorMessage.trim()) { %>
+  <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1056;">
+    <div class="toast toast-progress toast-error border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body"><%= errorMessage %></div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
+      </div>
+      <div class="toast-progress-bar"></div>
+    </div>
+  </div>
+<% } %>

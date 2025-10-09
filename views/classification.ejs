@@ -1,0 +1,42 @@
+<div id="classification-page">
+    <%- include('partials/header', { title: 'Classificação Geral' }) %>
+    <%- include('partials/flashMessages') %>
+    <% const tables = [ { title: 'Classificação dos IPCs', users: ipcUsers }, { title: 'Classificação dos EPCs', users: epcUsers }, { title: 'Classificação dos DPCs', users: dpcUsers } ]; %>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0">Classificação Geral de Servidores</h3>
+        <div class="col-md-3">
+            <label for="filter-ano" class="form-label">Filtrar por Ano de Referência:</label>
+            <select id="filter-ano" class="form-select">
+                <% if (typeof distinctYears !== 'undefined' && distinctYears.length > 0) { %>
+                    <% distinctYears.forEach(ano => { %>
+                        <option value="<%= ano %>" <%= ano == selectedYear ? 'selected' : '' %>><%= ano %></option>
+                    <% }); %>
+                <% } else { %>
+                    <option selected><%= selectedYear %></option>
+                <% } %>
+            </select>
+        </div>
+    </div>
+    <% tables.forEach(table => { %>
+    <div class="card shadow-sm mb-4">
+        <div class="card-header"><h5 class="card-title mb-0"><i class="bi bi-list-ol me-2"></i><%= table.title %></h5></div>
+        <div class="card-body">
+            <div class="table-responsive small">
+                <table class="table table-hover table-sm">
+                    <thead class="table-light"><tr><th>Nº</th><th>Nome</th><th class="hide-mobile">Matrícula</th><th class="hide-mobile">Cargo</th><th class="hide-mobile" title="Gestante">Gest.</th><th class="hide-mobile" title="Quantidade de Filhos">Filhos</th><th class="hide-mobile" title="Estudante">Estud.</th><th class="hide-mobile" title="Possui Cônjuge Servidor">Cônj.</th><th class="hide-mobile" title="Antiguidade (dias)">Antig.</th><th class="hide-mobile" title="Idade (dias)">Idade</th></tr></thead>
+                    <tbody>
+                        <% if (table.users && table.users.length > 0) { %>
+                            <% table.users.forEach(user => { %>
+                                <tr><td><%= user.classificacao %></td><td><%= user.nome %></td><td class="hide-mobile"><%= user.matricula %></td><td class="hide-mobile"><span class="badge bg-secondary"><%= user.categoria %></span></td><td class="hide-mobile"><%= user.gestante ? 'Sim' : 'Não' %></td><td class="hide-mobile"><%= user.qtd_filhos %></td><td class="hide-mobile"><%= user.estudante ? 'Sim' : 'Não' %></td><td class="hide-mobile"><%= user.possui_conjuge ? 'Sim' : 'Não' %></td><td class="hide-mobile"><%= user.data_ingresso_dias %></td><td class="hide-mobile"><%= user.data_nascimento_dias %></td></tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr><td colspan="10" class="text-center text-muted">Nenhum servidor encontrado para o ano selecionado.</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <% }); %>
+    <%- include('partials/footer') %>
+</div>

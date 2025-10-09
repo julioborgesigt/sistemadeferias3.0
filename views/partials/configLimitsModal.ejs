@@ -1,0 +1,69 @@
+<div class="modal fade" id="configLimitsModal" tabindex="-1" aria-labelledby="configLimitsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content border-primary">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="configLimitsModalLabel">
+            <i class="bi bi-sliders2 me-2"></i>Configuração de Limites
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <form action="/users/update-limits" method="POST">
+            <p class="small text-muted">Defina os limites de funcionários que podem tirar férias simultaneamente para cada categoria e grupo.</p>
+            
+            <h6 class="mt-3">Limites por Categoria Individual</h6>
+            <div class="row g-2">
+              <div class="col-sm-4">
+                <label for="max_ipc" class="form-label">IPC</label>
+                <input type="number" name="max_ipc" id="max_ipc" min="0" value="<%= settings.max_ipc || 0 %>" class="form-control form-control-sm" required>
+              </div>
+              <div class="col-sm-4">
+                <label for="max_epc" class="form-label">EPC</label>
+                <input type="number" name="max_epc" id="max_epc" min="0" value="<%= settings.max_epc || 0 %>" class="form-control form-control-sm" required>
+              </div>
+              <div class="col-sm-4">
+                <label for="max_dpc" class="form-label">DPC</label>
+                <input type="number" name="max_dpc" id="max_dpc" min="0" value="<%= settings.max_dpc || 0 %>" class="form-control form-control-sm" required>
+              </div>
+              <div class="col-sm-4">
+                <label for="max_ipc_p" class="form-label">IPC-P</label>
+                <input type="number" name="max_ipc_p" id="max_ipc_p" min="0" value="<%= settings.max_ipc_p || 0 %>" class="form-control form-control-sm" required>
+              </div>
+              <div class="col-sm-4">
+                <label for="max_epc_p" class="form-label">EPC-P</label>
+                <input type="number" name="max_epc_p" id="max_epc_p" min="0" value="<%= settings.max_epc_p || 0 %>" class="form-control form-control-sm" required>
+              </div>
+              <div class="col-sm-4">
+                <label for="max_dpc_p" class="form-label">DPC-P</label>
+                <input type="number" name="max_dpc_p" id="max_dpc_p" min="0" value="<%= settings.max_dpc_p || 0 %>" class="form-control form-control-sm" required>
+              </div>
+            </div>
+            
+            <hr>
+            <h6 class="mt-3">Limites por Grupo Total</h6>
+            <div class="row g-2">
+              <div class="col-sm-4">
+                <label for="max_ipc_t" class="form-label">Grupo IPC (IPC + IPC-P)</label>
+                <input type="number" name="max_ipc_t" id="max_ipc_t" min="0" value="<%= settings.max_ipc_t || 0 %>" class="form-control form-control-sm" required>
+              </div>
+              <div class="col-sm-4">
+                <label for="max_epc_t" class="form-label">Grupo EPC (EPC + EPC-P)</label>
+                <input type="number" name="max_epc_t" id="max_epc_t" min="0" value="<%= settings.max_epc_t || 0 %>" class="form-control form-control-sm" required>
+              </div>
+              <div class="col-sm-4">
+                <label for="max_dpc_t" class="form-label">Grupo DPC (DPC + DPC-P)</label>
+                <input type="number" name="max_dpc_t" id="max_dpc_t" min="0" value="<%= settings.max_dpc_t || 0 %>" class="form-control form-control-sm" required>
+              </div>
+            </div>
+  
+            <div class="modal-footer mt-4">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check2-circle"></i> Salvar Limites
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+</div>

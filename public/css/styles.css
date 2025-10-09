@@ -1,0 +1,161 @@
+/* public/css/styles.css */
+
+/* ==============================
+   1. Estilos Gerais e Bootstrap Overrides
+   ============================== */
+body {
+  background-color: #f8f9fa;
+}
+
+.custom-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ==============================
+   2. Navbar e Offcanvas
+   ============================== */
+.offcanvas {
+  max-width: 250px;
+}
+
+.offcanvas-body .nav-link {
+  color: #212529 !important; /* Cor escura para links no offcanvas */
+  font-size: 1rem;
+}
+
+.offcanvas-body .dropdown-menu {
+    border: none;
+}
+
+.offcanvas-body .dropdown-item {
+    padding-left: 2.5rem; /* Indentação para itens do dropdown */
+}
+
+
+@media (max-width: 768px) {
+  .offcanvas {
+    width: 70% !important;
+  }
+}
+
+/* ==============================
+   3. Cards, Tabelas e Componentes
+   ============================== */
+.card-title {
+    font-weight: 500;
+}
+
+.styled-table thead {
+  background-color: #0d6efd;
+  color: white;
+}
+
+.classification-table {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+.classification-table th {
+    font-weight: 600;
+}
+
+.calendar-table {
+    border-collapse: collapse;
+}
+.calendar-table th, .calendar-table td {
+    border: 1px solid #dee2e6;
+    vertical-align: top;
+    height: 100px;
+}
+
+/* Oculta colunas em telas menores */
+@media (max-width: 992px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+/* ==============================
+   4. Layouts de Página Específicos
+   ============================== */
+
+/* --- Página de Login --- */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 5vh;
+}
+.login-container .card {
+    max-width: 400px;
+    width: 100%;
+}
+
+/* --- Formulários --- */
+.period-container {
+  display: none; /* Inicia oculto, controlado por JS */
+}
+
+/* ==============================
+   5. Notificações "Toast"
+   ============================== */
+.toast-container {
+    z-index: 1090; /* Garante que fique acima de outros elementos */
+}
+.toast-success {
+  background-color: #198754; /* Verde Bootstrap */
+  color: #fff;
+}
+.toast-error {
+  background-color: #dc3545; /* Vermelho Bootstrap */
+  color: #fff;
+}
+.toast-progress-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.7);
+  width: 100%;
+  animation: progressBar 3.8s linear forwards;
+}
+
+/* Estilos para a página de login */
+.login-page-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 70vh; /* Ajusta a altura para centralização vertical */
+}
+
+.login-page-wrapper .card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.badge.bg-success-subtle.text-success-emphasis {
+    color: var(--bs-success-text-emphasis) !important;
+}
+
+/* ==============================================
+   AJUSTES FINAIS NO CALENDÁRIO ANUAL
+   ============================================== */
+
+/* Garante que os nomes (badges) fiquem um abaixo do outro */
+.calendar-table .list-unstyled li.badge {
+    display: block;      /* Força cada item da lista a ocupar uma linha inteira */
+    width: fit-content;  /* Faz o fundo do badge se ajustar ao tamanho do texto */
+    margin-bottom: 3px;  /* Adiciona um pequeno espaço entre os nomes */
+    text-align: left;    /* Alinha o texto à esquerda dentro do badge */
+}
+
+/* Define uma altura fixa para todas as células do calendário e alinha o conteúdo */
+.calendar-table td {
+    height: 110px;          /* Define uma altura fixa para todas as células */
+    vertical-align: top;    /* Alinha todo o conteúdo (número e nomes) ao topo */
+    padding: 4px;           /* Adiciona um pequeno espaçamento interno */
+}
+
+@keyframes progressBar {
+  from { width: 100%; }
+  to { width: 0%; }
+}
