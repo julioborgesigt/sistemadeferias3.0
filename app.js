@@ -58,11 +58,13 @@ app.get('/', (req, res) => {
     res.redirect('/auth/login');
 });
 
-const PORT = process.env.PORT || 3000;
+
 db.sequelize.sync()
   .then(() => {
-    app.listen(PORT, () => {
-      console.log(`🚀 Servidor rodando na porta ${PORT} (Ambiente: ${process.env.NODE_ENV})`);
+    // A mágica acontece aqui: app.listen() sem argumentos.
+    // O Phusion Passenger irá automaticamente atribuir uma porta.
+    app.listen(() => {
+      console.log(`🚀 Servidor rodando e escutando em um socket gerenciado pelo Passenger.`);
     });
   })
   .catch(err => {
