@@ -170,51 +170,78 @@ async function updateVacation(req, res) {
 // ===================================================================
 // FUNÇÃO DO CALENDÁRIO REESCRITA PARA ELIMINAR DUPLICATAS
 // ===================================================================
+// controllers/vacationController.js
+
 async function showYearCalendar(req, res) {
     try {
         const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
         const categories = Array.isArray(req.query.category) ? req.query.category : [req.query.category];
 
-        // PASSO 1: Busca os usuários que pertencem às categorias selecionadas, sem duplicatas.
-        const targetUsers = await User.findAll({
-            attributes: ['matricula', 'nome'],
-            where: { categoria: { [Op.in]: categories } },
-            raw: true
-        });
-
-        if (targetUsers.length === 0) {
-            return res.render('year_calendar', { calendarData: {}, year, category: categories.join(' / ') });
-        }
-
-        const userMap = new Map(targetUsers.map(u => [u.matricula, u.nome]));
-        const targetMatriculas = Array.from(userMap.keys());
-
-        // PASSO 2: Busca as férias APENAS para os usuários encontrados, baseando-se no período de datas.
+        // PASSO 1: Busca TODAS as férias que ocorrem no ano do calendário,
+        // independentemente do ano de referência delas.
         const yearStartDate = new Date(Date.UTC(year, 0, 1));
         const yearEndDate = new Date(Date.UTC(year, 11, 31, 23, 59, 59));
 
         const vacations = await Vacation.findAll({
             where: {
-                matricula: { [Op.in]: targetMatriculas },
                 data_inicio: { [Op.lte]: yearEndDate },
                 data_fim: { [Op.gte]: yearStartDate }
-            }
+            },
+            raw: true
         });
 
-        // PASSO 3: Processa os dados limpos e sem duplicatas para a view.
+        // Se nenhuma férias for encontrada, renderiza o calendário vazio.
+        if (vacations.length === 0) {
+            return res.render('year_calendar', { calendarData: {}, year, category: categories.join(' / ') });
+        }
+
+        // PASSO 2: Coleta os pares únicos [matricula, ano_referencia] das férias encontradas.
+        // Isso identifica exatamente quais "versões" dos usuários precisamos buscar.
+        const userKeys = new Set(vacations.map(v => `${v.matricula}::${v.ano_referencia}`));
+        const userWhereClauses = Array.from(userKeys).map(key => {
+            const [matricula, ano_referencia] = key.split('::');
+            return { matricula, ano_referencia: parseInt(ano_referencia) };
+        });
+
+        // PASSO 3: Busca os usuários que correspondem EXATAMENTE a esses pares
+        // E TAMBÉM pertencem às categorias selecionadas.
+        const targetUsers = await User.findAll({
+            attributes: ['matricula', 'nome', 'ano_referencia'],
+            where: {
+                [Op.or]: userWhereClauses, // Busca pelos pares [matricula, ano]
+                categoria: { [Op.in]: categories } // E filtra pela categoria
+            },
+            raw: true
+        });
+
+        // PASSO 4: Cria um mapa de usuários com uma chave composta.
+        // Ex: '123::2024' -> 'Carlos2024'
+        const userMap = new Map(
+            targetUsers.map(u => [`${u.matricula}::${u.ano_referencia}`, u.nome])
+        );
+
+        // PASSO 5: Filtra a lista de férias original, mantendo apenas aquelas
+        // cujos usuários nós encontramos no Passo 4 (ou seja, que são da categoria correta).
+        const filteredVacations = vacations.filter(vac => 
+            userMap.has(`${vac.matricula}::${vac.ano_referencia}`)
+        );
+
+        // PASSO 6: Processa os dados limpos para a view.
         const calendarData = {};
-        vacations.forEach(vac => {
+        filteredVacations.forEach(vac => {
+            // Busca o nome usando a chave composta correta
+            const userName = userMap.get(`${vac.matricula}::${vac.ano_referencia}`) || 'Desconhecido';
+            
             let currentDate = new Date(vac.data_inicio);
             const endDate = new Date(vac.data_fim);
-            
+
             while (currentDate <= endDate) {
+                // Só adiciona ao calendário se o dia pertencer ao ano que estamos vendo
                 if (currentDate.getUTCFullYear() === year) {
                     const dateKey = currentDate.toISOString().split('T')[0];
                     if (!calendarData[dateKey]) {
                         calendarData[dateKey] = [];
                     }
-                    const userName = userMap.get(vac.matricula) || 'Desconhecido';
-                    // Garante que o mesmo nome não seja adicionado duas vezes no mesmo dia
                     if (!calendarData[dateKey].includes(userName)) {
                         calendarData[dateKey].push(userName);
                     }
@@ -223,6 +250,7 @@ async function showYearCalendar(req, res) {
             }
         });
 
+        // PASSO 7: Renderiza a página.
         res.render('year_calendar', {
             calendarData,
             year,
