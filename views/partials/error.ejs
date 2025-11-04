@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'Erro' %> - Sistema de Férias</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow">
+                    <div class="card-body text-center p-5">
+                        <h1 class="display-1 text-danger"><%= statusCode || 500 %></h1>
+                        <h2 class="mb-4"><%= title || 'Erro' %></h2>
+                        <p class="lead text-muted"><%= message || 'Ocorreu um erro inesperado.' %></p>
+
+                        <% if (stack && typeof stack !== 'undefined') { %>
+                            <div class="alert alert-warning mt-4 text-start">
+                                <strong>Stack Trace (apenas em desenvolvimento):</strong>
+                                <pre class="mt-2 small"><%= stack %></pre>
+                            </div>
+                        <% } %>
+
+                        <div class="mt-4">
+                            <a href="/auth/login" class="btn btn-primary">
+                                <i class="bi bi-house-door"></i> Voltar para o Login
+                            </a>
+                            <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Voltar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

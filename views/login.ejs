@@ -12,6 +12,7 @@
             </div>
 
             <form action="/auth/login" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <div class="form-floating mb-3">
                     <input type="email" name="email" class="form-control" id="emailInput" placeholder="seu@email.com" required>
                     <label for="emailInput">Email:</label>
