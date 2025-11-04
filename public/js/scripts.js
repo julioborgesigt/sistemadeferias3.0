@@ -7,32 +7,59 @@
  * @param {string} type - 'success' (verde) ou 'error' (vermelho).
   * @param {number} duration - Duração em milissegundos.
  */
+/**
+ * Função para criar e exibir uma notificação "toast" dinamicamente via JavaScript.
+ * VERSÃO SEGURA: Previne XSS usando textContent em vez de innerHTML
+ * @param {string} message - A mensagem a ser exibida.
+ * @param {string} type - 'success' (verde) ou 'error' (vermelho).
+ * @param {number} duration - Duração em milissegundos.
+ */
 function showToast(message, type = 'success', duration = 5000) {
     const toastContainer = document.createElement('div');
     toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
     toastContainer.style.zIndex = '1090';
 
     const toastTypeClass = type === 'success' ? 'toast-success' : 'toast-error';
-    const toastHTML = `
-        <div class="toast toast-progress ${toastTypeClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body">${message}</div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
-            </div>
-            <div class="toast-progress-bar" style="animation-duration: ${duration - 200}ms;"></div>
-        </div>
-    `;
-    toastContainer.innerHTML = toastHTML;
+
+    // Criar elementos DOM de forma segura (previne XSS)
+    const toast = document.createElement('div');
+    toast.className = `toast toast-progress ${toastTypeClass} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+
+    const dFlex = document.createElement('div');
+    dFlex.className = 'd-flex';
+
+    const toastBody = document.createElement('div');
+    toastBody.className = 'toast-body';
+    toastBody.textContent = message; // ✅ Usa textContent (seguro)
+
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'btn-close btn-close-white me-2 m-auto';
+    closeButton.setAttribute('data-bs-dismiss', 'toast');
+    closeButton.setAttribute('aria-label', 'Fechar');
+
+    const progressBar = document.createElement('div');
+    progressBar.className = 'toast-progress-bar';
+    progressBar.style.animationDuration = `${duration - 200}ms`;
+
+    // Montar a estrutura
+    dFlex.appendChild(toastBody);
+    dFlex.appendChild(closeButton);
+    toast.appendChild(dFlex);
+    toast.appendChild(progressBar);
+    toastContainer.appendChild(toast);
     document.body.appendChild(toastContainer);
 
-    const toastElement = toastContainer.querySelector('.toast');
-    const bsToast = new bootstrap.Toast(toastElement, {
+    const bsToast = new bootstrap.Toast(toast, {
         autohide: true,
         delay: duration
     });
     bsToast.show();
 
-    toastElement.addEventListener('hidden.bs.toast', () => {
+    toast.addEventListener('hidden.bs.toast', () => {
         if (document.body.contains(toastContainer)) {
             document.body.removeChild(toastContainer);
         }

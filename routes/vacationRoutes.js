@@ -2,17 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const vacationController = require('../controllers/vacationController');
-
-/**
- * Middleware para garantir que apenas administradores autenticados acessem as rotas.
- */
-function ensureAuthenticated(req, res, next) {
-  if (req.session && req.session.admin) {
-    return next();
-  }
-  req.flash('error_msg', 'Acesso não autorizado. Por favor, faça login.');
-  res.redirect('/auth/login');
-}
+const { ensureAuthenticated } = require('../middlewares/auth');
 
 // Rotas públicas (acessíveis sem login)
 router.get('/calendar-options', vacationController.showCalendarOptions);

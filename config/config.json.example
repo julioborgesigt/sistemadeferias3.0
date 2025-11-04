@@ -1,0 +1,26 @@
+{
+  "development": {
+    "username": "seu_usuario_mysql",
+    "password": "sua_senha_mysql",
+    "database": "nome_do_banco_dev",
+    "host": "host_do_banco",
+    "dialect": "mysql",
+    "timezone": "-03:00"
+  },
+  "test": {
+    "username": "seu_usuario_mysql",
+    "password": "sua_senha_mysql",
+    "database": "nome_do_banco_test",
+    "host": "host_do_banco",
+    "dialect": "mysql",
+    "timezone": "-03:00"
+  },
+  "production": {
+    "username": "seu_usuario_mysql",
+    "password": "sua_senha_mysql",
+    "database": "nome_do_banco_prod",
+    "host": "host_do_banco",
+    "dialect": "mysql",
+    "timezone": "-03:00"
+  }
+}

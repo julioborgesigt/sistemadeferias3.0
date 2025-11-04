@@ -1,23 +1,8 @@
-// routes/userRoutes.js (VERSÃO CORRIGIDA)
+// routes/userRoutes.js
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-
-/**
- * Middleware para garantir que apenas administradores autenticados acessem as rotas.
- */
-function ensureAuthenticated(req, res, next) {
-  // A verificação 'req.isAuthenticated()' é um método mais robusto que o connect-flash
-  // pode fornecer, mas uma verificação simples na sessão também funciona.
-  // A verificação dupla (req.session && req.session.admin) é uma boa prática.
-  if (req.session && req.session.admin) {
-    return next(); // Se a sessão do admin existe, permite o acesso.
-  }
-  
-  // Se não houver sessão, define a mensagem de erro e redireciona para o login.
-  req.flash('error_msg', 'Acesso não autorizado. Por favor, faça login.');
-  res.redirect('/auth/login');
-}
+const { ensureAuthenticated } = require('../middlewares/auth');
 
 // Todas as rotas abaixo são protegidas e exigem login de administrador.
 router.use(ensureAuthenticated);
