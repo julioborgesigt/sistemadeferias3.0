@@ -2,7 +2,7 @@
   "development": {
     "username": "feriasdriguatu2",
     "password": "gi7287+_XTLNc7_cXy",
-    "database": "feriasdriguatu2_db",
+    "database": "feriasdriguatu2_feriasjuazeiro",
     "host": "sao.domcloud.co",
     "dialect": "mysql",
     "timezone": "-03:00"
@@ -10,7 +10,7 @@
   "test": {
     "username": "feriasdriguatu2",
     "password": "gi7287+_XTLNc7_cXy",
-    "database": "feriasdriguatu2_db",
+    "database": "feriasdriguatu2_feriasjuazeiro",
     "host": "sao.domcloud.co",
     "dialect": "mysql",
     "timezone": "-03:00"
@@ -18,7 +18,7 @@
   "production": {
     "username": "feriasdriguatu2",
     "password": "gi7287+_XTLNc7_cXy",
-    "database": "feriasdriguatu2_db",
+    "database": "feriasdriguatu2_feriasjuazeiro",
     "host": "sao.domcloud.co",
     "dialect": "mysql",
     "timezone": "-03:00"
