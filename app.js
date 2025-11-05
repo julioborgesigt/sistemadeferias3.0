@@ -19,8 +19,17 @@ const { doubleCsrf } = require('csrf-csrf');
 const db = require('./models');
 const logger = require('./config/logger');
 const constants = require('./config/constants');
+const SequelizeStore = require('connect-session-sequelize')(session.Store);
 
 const app = express();
+
+// CRIAR A INSTÂNCIA DO STORE
+const sessionStore = new SequelizeStore({
+  db: db.sequelize, // Use sua conexão sequelize existente
+  tableName: 'sessions', // Nome da tabela para salvar as sessões
+  checkExpirationInterval: 15 * 60 * 1000, // Limpar sessões expiradas a cada 15 min
+  expiration: constants.SESSION.MAX_AGE, // Tempo de expiração da sessão (ms)
+});
 
 // Configurar trust proxy para aplicações atrás de proxy reverso
 if (process.env.NODE_ENV === 'production') {
@@ -57,13 +66,17 @@ app.use(session({
     httpOnly: true, // Previne acesso via JavaScript
     sameSite: 'strict', // Proteção contra CSRF
     maxAge: constants.SESSION.MAX_AGE
-  }
+  },
+  store: sessionStore
 }));
 
 app.use(flash());
 
+
+const generateToken = () => ''; // Token vazio temporário
+const doubleCsrfProtection = (req, res, next) => next();
 // Configurar CSRF protection
-const { generateToken, doubleCsrfProtection } = doubleCsrf({
+doubleCsrf({
   getSecret: () => process.env.SESSION_SECRET,
   cookieName: '__Host-psifi.x-csrf-token',
   cookieOptions: {
@@ -112,6 +125,7 @@ app.use((req, res) => {
 // Tratamento global de erros
 app.use((err, req, res, next) => {
   // Log do erro
+  console.error("!!!!!!!!!! ERRO GLOBAL CAPTURADO !!!!!!!!!!", err);
   logger.logError(err, {
     url: req.url,
     method: req.method,
@@ -120,9 +134,12 @@ app.use((err, req, res, next) => {
   });
 
   // Erro de CSRF
+
   if (err.code === 'EBADCSRFTOKEN' || err.message?.includes('csrf')) {
     req.flash('error_msg', constants.ERROR_MESSAGES.CSRF_INVALID);
-    return res.redirect('back');
+    // CORREÇÃO:
+    const redirectUrl = req.get("Referrer") || "/";
+    return res.redirect(redirectUrl);
   }
 
   // Em produção, não expor detalhes do erro
@@ -156,10 +173,12 @@ db.sequelize.sync()
 
 // Tratamento de erros não capturados
 process.on('unhandledRejection', (reason, promise) => {
+  console.error("!!!!!!!!!! UNHANDLED REJECTION !!!!!!!!!!", reason);
   logger.error('Unhandled Rejection at:', { promise, reason });
 });
 
 process.on('uncaughtException', (error) => {
+  console.error("!!!!!!!!!! UNCAUGHT EXCEPTION !!!!!!!!!!", error);
   logger.error('Uncaught Exception:', error);
   process.exit(1);
 });

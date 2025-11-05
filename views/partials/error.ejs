@@ -17,7 +17,7 @@
                         <h2 class="mb-4"><%= title || 'Erro' %></h2>
                         <p class="lead text-muted"><%= message || 'Ocorreu um erro inesperado.' %></p>
 
-                        <% if (stack && typeof stack !== 'undefined') { %>
+                        <% if (locals.stack) { %>
                             <div class="alert alert-warning mt-4 text-start">
                                 <strong>Stack Trace (apenas em desenvolvimento):</strong>
                                 <pre class="mt-2 small"><%= stack %></pre>

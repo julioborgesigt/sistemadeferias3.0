@@ -1,7 +1,7 @@
 // routes/authRoutes.js
 const express = require('express');
 const router = express.Router();
-const rateLimit = require('express-rate-limit');
+const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 const authController = require('../controllers/authController');
 const { redirectIfAuthenticated } = require('../middlewares/auth');
 const constants = require('../config/constants');
@@ -15,7 +15,10 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
   // Armazena tentativas por IP + email para maior segurança
   keyGenerator: (req) => {
-    return `${req.ip}_${req.body.email || 'unknown'}`;
+    // 1. Extrai o IP de forma segura (trata IPv4 e IPv6)
+    const ip = ipKeyGenerator(req); 
+    // 2. Retorna sua chave personalizada combinada
+    return `${ip}_${req.body.email || 'unknown'}`;
   },
   handler: (req, res) => {
     req.flash('error_msg', constants.ERROR_MESSAGES.RATE_LIMIT_EXCEEDED);
