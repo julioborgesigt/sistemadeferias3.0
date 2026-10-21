@@ -18,7 +18,8 @@ module.exports = (sequelize, DataTypes) => {
     periodo_aquisitivo_inicio: { type: DataTypes.DATE, allowNull: false },
     periodo_aquisitivo_fim: { type: DataTypes.DATE, allowNull: false },
     classificacao: { type: DataTypes.INTEGER, allowNull: true },
-    categoria: { type: DataTypes.ENUM('IPC', 'EPC', 'DPC', 'IPC-P', 'EPC-P', 'DPC-P'), allowNull: false }
+    categoria: { type: DataTypes.ENUM('IPC', 'EPC', 'DPC', 'IPC-P', 'EPC-P', 'DPC-P'), allowNull: false },
+    lotacao: { type: DataTypes.STRING(80), allowNull: false, defaultValue: 'Iguatu' }
   }, {
     // O bloco 'hooks' foi completamente removido
     indexes: [{ unique: true, fields: ['matricula', 'ano_referencia'] }]

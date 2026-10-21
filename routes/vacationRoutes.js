@@ -11,6 +11,8 @@ router.get('/year-calendar', vacationController.showYearCalendar);
 // As rotas abaixo são protegidas e exigem login de administrador.
 router.use(ensureAuthenticated);
 
+router.get('/choques', vacationController.showChoques);
+
 // Exibir formulário para o admin cadastrar férias
 router.get('/admin-form', vacationController.showAdminVacationForm);
 

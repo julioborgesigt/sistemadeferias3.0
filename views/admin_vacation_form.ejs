@@ -54,6 +54,20 @@
                     </div>
                     <% } %>
                 </div>
+
+                <% if (typeof clashes !== 'undefined' && clashes && clashes.length) { %>
+                <div class="alert alert-warning mt-3">
+                    <strong>Choque de férias.</strong> A marcação fica bloqueada até a aprovação do administrador.
+                    <ul class="mb-3 mt-2">
+                        <% clashes.forEach((choque) => { %>
+                            <li><%= choque %></li>
+                        <% }); %>
+                    </ul>
+                    <button type="submit" name="ignorar_choques" value="1" class="btn btn-warning">
+                        <i class="bi bi-exclamation-triangle me-1"></i>Aprovar mesmo assim
+                    </button>
+                </div>
+                <% } %>
             
         </div>
         <div class="card-footer text-end">
@@ -83,7 +97,7 @@
               data-ano="<%= u.ano_referencia %>"
               data-nome="<%= u.nome %>">
             <strong><%= u.nome %></strong><br>
-            <small class="text-muted">Matrícula: <%= u.matricula %> | Ano: <%= u.ano_referencia %></small>
+            <small class="text-muted">Matrícula: <%= u.matricula %> | Ano: <%= u.ano_referencia %> | Lotação: <%= u.lotacao || 'Iguatu' %></small>
           </li>
         <% }); %>
       <% } else { %>

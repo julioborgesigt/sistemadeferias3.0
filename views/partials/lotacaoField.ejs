@@ -1,0 +1,11 @@
+<%
+  const opcoes = (typeof lotacoes !== 'undefined' && lotacoes) ? lotacoes : ['Iguatu'];
+  const valor = typeof selecionada !== 'undefined' && selecionada ? selecionada : 'Iguatu';
+  const campoId = typeof fieldId !== 'undefined' ? fieldId : 'lotacao';
+%>
+<label for="<%= campoId %>" class="form-label">Lotação:</label>
+<select name="lotacao" id="<%= campoId %>" class="form-select" required>
+  <% opcoes.forEach((nome) => { %>
+    <option value="<%= nome %>" <%= valor === nome ? 'selected' : '' %>><%= nome %></option>
+  <% }); %>
+</select>

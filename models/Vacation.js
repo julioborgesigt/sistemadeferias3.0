@@ -30,6 +30,15 @@ module.exports = (sequelize, DataTypes) => {
     ano_referencia: {
       type: DataTypes.INTEGER,
       allowNull: false
+    },
+    aprovado_com_choque: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    aviso_choque: {
+      type: DataTypes.TEXT,
+      allowNull: true
     }
   }, {
     tableName: 'Vacations',

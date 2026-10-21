@@ -31,7 +31,10 @@
                             <option value="DPC-P" <%= old.categoria === 'DPC-P' ? 'selected' : '' %>>DPC-P</option>
                         </select>
                     </div>
-                    <div class="col-md-8">
+                    <div class="col-md-4">
+                        <%- include('partials/lotacaoField', { selecionada: old.lotacao || 'Iguatu', fieldId: 'lotacao' }) %>
+                    </div>
+                    <div class="col-md-4">
                         <label class="form-label">Ano de Referência:</label>
                         <div class="btn-group w-100" role="group">
                             <button type="button" class="btn btn-outline-primary" id="btn-ano-anterior"></button>

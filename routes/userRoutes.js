@@ -13,6 +13,10 @@ router.get('/years/:matricula', userController.getUserYears);
 // Dashboard principal do administrador
 router.get('/dashboard', userController.dashboard);
 
+router.get('/coberturas', userController.showCoberturas);
+router.post('/coberturas', userController.createCobertura);
+router.post('/coberturas/remover', userController.deleteCobertura);
+
 // Exibir formulário de cadastro de usuário
 router.get('/register', userController.showRegistrationForm);
 

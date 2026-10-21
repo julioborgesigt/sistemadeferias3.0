@@ -1,0 +1,60 @@
+<%- include('partials/header', { title: 'Coberturas entre lotações' }) %>
+<%- include('partials/flashMessages') %>
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-header">
+        <h5 class="card-title mb-0"><i class="bi bi-plus-circle me-2"></i>Nova cobertura</h5>
+      </div>
+      <div class="card-body">
+        <p class="small text-muted">Delegacias que respondem uma pela outra não devem ter férias coincidentes. O par vale nos dois sentidos.</p>
+        <form action="/users/coberturas" method="POST">
+          <div class="mb-3">
+            <label for="lotacao_a" class="form-label">Lotação</label>
+            <select name="lotacao_a" id="lotacao_a" class="form-select" required>
+              <% lotacoes.forEach((nome) => { %>
+                <option value="<%= nome %>"><%= nome %></option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="lotacao_b" class="form-label">Cobre</label>
+            <select name="lotacao_b" id="lotacao_b" class="form-select" required>
+              <% lotacoes.forEach((nome) => { %>
+                <option value="<%= nome %>"><%= nome %></option>
+              <% }); %>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Salvar par</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-header">
+        <h5 class="card-title mb-0"><i class="bi bi-diagram-3 me-2"></i>Pares configurados</h5>
+      </div>
+      <div class="card-body">
+        <% if (!pares.length) { %>
+          <p class="text-muted mb-0">Nenhuma cobertura configurada.</p>
+        <% } else { %>
+          <ul class="list-group">
+            <% pares.forEach((par) => { %>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span><%= par.lotacao_a %> <i class="bi bi-arrow-left-right mx-1"></i> <%= par.lotacao_b %></span>
+                <form action="/users/coberturas/remover" method="POST" class="mb-0">
+                  <input type="hidden" name="id" value="<%= par.id %>">
+                  <button type="submit" class="btn btn-outline-danger btn-sm">Remover</button>
+                </form>
+              </li>
+            <% }); %>
+          </ul>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

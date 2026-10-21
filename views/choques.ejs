@@ -1,0 +1,129 @@
+<%- include('partials/header', { title: 'Choques e pendências' }) %>
+<%- include('partials/flashMessages') %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+  <div>
+    <h3 class="mb-1">Choques e pendências</h3>
+    <p class="text-muted mb-0">Ano <%= ano %>. Coberturas recíprocas e marcações ainda sem férias.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <form method="GET" action="/vacations/choques" class="d-flex gap-2">
+      <select name="year" class="form-select" onchange="this.form.submit()">
+        <% (anos.length ? anos : [ano]).forEach((item) => { %>
+          <option value="<%= item %>" <%= Number(item) === Number(ano) ? 'selected' : '' %>><%= item %></option>
+        <% }); %>
+      </select>
+    </form>
+    <button type="button" class="btn btn-primary" id="download-choques">
+      <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+    </button>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header"><h5 class="mb-0">Choques entre lotações que se cobrem</h5></div>
+  <div class="card-body table-responsive">
+    <table class="table table-sm" id="tabela-choques">
+      <thead>
+        <tr>
+          <th>Servidor</th><th>Lotação</th><th>Período</th>
+          <th>Servidor</th><th>Lotação</th><th>Período</th>
+          <th>Dias úteis</th><th>Situação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!choques.length) { %>
+          <tr><td colspan="8" class="text-muted">Nenhum choque encontrado.</td></tr>
+        <% } %>
+        <% choques.forEach((item) => { %>
+          <tr>
+            <td><%= item.servidorA %></td>
+            <td><%= item.lotacaoA %></td>
+            <td><%= item.periodoA %></td>
+            <td><%= item.servidorB %></td>
+            <td><%= item.lotacaoB %></td>
+            <td><%= item.periodoB %></td>
+            <td><%= item.diasUteis %></td>
+            <td><%= item.aprovado ? 'Aprovado pelo administrador' : 'Pendente' %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header"><h5 class="mb-0">Pendências de marcação</h5></div>
+  <div class="card-body table-responsive">
+    <table class="table table-sm" id="tabela-pendencias">
+      <thead><tr><th>Servidor</th><th>Matrícula</th><th>Lotação</th><th>Cargo</th></tr></thead>
+      <tbody>
+        <% if (!semFerias.length) { %>
+          <tr><td colspan="4" class="text-muted">Todos os servidores deste ano têm férias marcadas.</td></tr>
+        <% } %>
+        <% semFerias.forEach((item) => { %>
+          <tr>
+            <td><%= item.nome %></td>
+            <td><%= item.matricula %></td>
+            <td><%= item.lotacao %></td>
+            <td><%= item.categoria %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header"><h5 class="mb-0">Aprovações apesar do choque</h5></div>
+  <div class="card-body table-responsive">
+    <table class="table table-sm" id="tabela-aprovacoes">
+      <thead><tr><th>Servidor</th><th>Matrícula</th><th>Lotação</th><th>Advertência</th></tr></thead>
+      <tbody>
+        <% if (!aprovadas.length) { %>
+          <tr><td colspan="4" class="text-muted">Nenhuma marcação foi aprovada com choque.</td></tr>
+        <% } %>
+        <% aprovadas.forEach((item) => { %>
+          <tr>
+            <td><%= item.nome %></td>
+            <td><%= item.matricula %></td>
+            <td><%= item.lotacao %></td>
+            <td><%= item.aviso || 'Aprovado pelo administrador' %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  document.getElementById('download-choques').addEventListener('click', () => {
+    const tabela = (id) => {
+      const linhas = [];
+      document.querySelectorAll(`#${id} tr`).forEach((tr) => {
+        const celulas = [...tr.children].map((celula) => celula.textContent.trim());
+        if (celulas.length) linhas.push(celulas);
+      });
+      return linhas;
+    };
+    const bloco = (titulo, id) => ([
+      { text: titulo, style: 'header', margin: [0, 12, 0, 6] },
+      { table: { headerRows: 1, body: tabela(id) }, layout: 'lightHorizontalLines' }
+    ]);
+    const docDefinition = {
+      pageSize: 'A4',
+      pageOrientation: 'landscape',
+      content: [
+        { text: `Choques e pendências — ${<%= ano %>}`, style: 'header' },
+        ...bloco('Choques', 'tabela-choques'),
+        ...bloco('Pendências de marcação', 'tabela-pendencias'),
+        ...bloco('Aprovações apesar do choque', 'tabela-aprovacoes')
+      ],
+      styles: { header: { fontSize: 14, bold: true } },
+      defaultStyle: { fontSize: 8 }
+    };
+    pdfMake.createPdf(docDefinition).download(`choques_pendencias_<%= ano %>.pdf`);
+  });
+</script>
+
+<%- include('partials/footer') %>
