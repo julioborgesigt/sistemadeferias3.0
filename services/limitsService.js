@@ -316,6 +316,7 @@ module.exports = {
   cargoFromCategoria,
   checkVacationPeriods,
   countBusinessDays,
+  brazilToday,
   countEfetivo,
   evaluatePeriodLimit,
   floorPercent,
