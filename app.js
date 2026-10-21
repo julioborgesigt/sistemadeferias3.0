@@ -91,34 +91,39 @@ doubleCsrf({
 
 // Middleware para disponibilizar mensagens flash, caminho atual e CSRF token nas views
 app.use(async (req, res, next) => {
-  res.locals.success_msg = req.flash('success_msg');
-  res.locals.error_msg = req.flash('error_msg');
-  res.locals.admin = req.session.admin || null;
-  res.locals.csrfToken = generateToken(req, res);
-  res.locals.currentPath = req.path;
-  res.locals.assetVersion = '20261021-3';
-  res.locals.settings = {};
-  const hoje = brazilToday();
-  res.locals.anoEfetivo = hoje.year;
-  res.locals.efetivoPorCargo = { IPC: 0, EPC: 0, DPC: 0 };
+  try {
+    res.locals.success_msg = req.flash('success_msg');
+    res.locals.error_msg = req.flash('error_msg');
+    res.locals.admin = req.session.admin || null;
+    res.locals.csrfToken = generateToken(req, res);
+    res.locals.currentPath = req.path;
+    res.locals.assetVersion = '20261021-3';
+    res.locals.settings = {};
+    const hoje = brazilToday();
+    res.locals.anoEfetivo = hoje.year;
+    res.locals.efetivoPorCargo = { IPC: 0, EPC: 0, DPC: 0 };
 
-  if (req.session && req.session.admin) {
-    try {
-      const settings = await db.Settings.findOne({ where: { id: 1 } });
-      res.locals.settings = settings || {};
-      const pessoas = await db.User.findAll({
-        attributes: ['categoria'],
-        where: { ano_referencia: hoje.year },
-        raw: true
-      });
-      res.locals.efetivoPorCargo = countEfetivo(pessoas);
-    } catch (error) {
-      logger.warn('Não foi possível carregar os limites para o menu do administrador.');
-      res.locals.settings = res.locals.settings || {};
+    if (req.session && req.session.admin) {
+      try {
+        const settings = await db.Settings.findOne({ where: { id: 1 } });
+        res.locals.settings = settings || {};
+        const pessoas = await db.User.findAll({
+          attributes: ['categoria'],
+          where: { ano_referencia: hoje.year },
+          raw: true
+        });
+        res.locals.efetivoPorCargo = countEfetivo(pessoas);
+      } catch (error) {
+        logger.warn('Não foi possível carregar os limites para o menu do administrador.');
+        console.error('Falha ao carregar limites do menu:', error.message);
+        res.locals.settings = res.locals.settings || {};
+      }
     }
-  }
 
-  next();
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 const authRoutes = require('./routes/authRoutes');
@@ -200,39 +205,79 @@ async function describeSettingsTable(queryInterface) {
   throw lastError;
 }
 
+function columnExists(description, name) {
+  return Object.keys(description || {}).some((key) => key.toLowerCase() === name.toLowerCase());
+}
+
+function queryOnConnection(connection, sql) {
+  const native = connection.connection || connection;
+  if (native.promise && typeof native.promise().query === 'function') {
+    return native.promise().query(sql).then((result) => Array.isArray(result) ? result[0] : result);
+  }
+  return new Promise((resolve, reject) => {
+    native.query(sql, (error, results) => error ? reject(error) : resolve(results));
+  });
+}
+
 async function ensureLimitColumns() {
   const queryInterface = db.sequelize.getQueryInterface();
   const { tableName, description } = await describeSettingsTable(queryInterface);
   const columns = [
-    ['pct_primeiro_ipc', { type: db.Sequelize.INTEGER, allowNull: false, defaultValue: 15 }],
-    ['pct_primeiro_epc', { type: db.Sequelize.INTEGER, allowNull: false, defaultValue: 15 }],
-    ['pct_primeiro_dpc', { type: db.Sequelize.INTEGER, allowNull: false, defaultValue: 15 }],
-    ['max_seguintes_ipc', { type: db.Sequelize.INTEGER, allowNull: true }],
-    ['max_seguintes_epc', { type: db.Sequelize.INTEGER, allowNull: true }],
-    ['max_seguintes_dpc', { type: db.Sequelize.INTEGER, allowNull: true }],
-    ['tolerancia_dias_ipc', { type: db.Sequelize.INTEGER, allowNull: false, defaultValue: 0 }],
-    ['tolerancia_dias_epc', { type: db.Sequelize.INTEGER, allowNull: false, defaultValue: 0 }],
-    ['tolerancia_dias_dpc', { type: db.Sequelize.INTEGER, allowNull: false, defaultValue: 0 }]
+    ['pct_primeiro_ipc', 'INT NOT NULL DEFAULT 15'],
+    ['pct_primeiro_epc', 'INT NOT NULL DEFAULT 15'],
+    ['pct_primeiro_dpc', 'INT NOT NULL DEFAULT 15'],
+    ['max_seguintes_ipc', 'INT NULL'],
+    ['max_seguintes_epc', 'INT NULL'],
+    ['max_seguintes_dpc', 'INT NULL'],
+    ['tolerancia_dias_ipc', 'INT NOT NULL DEFAULT 0'],
+    ['tolerancia_dias_epc', 'INT NOT NULL DEFAULT 0'],
+    ['tolerancia_dias_dpc', 'INT NOT NULL DEFAULT 0']
   ];
-  for (const [name, spec] of columns) {
-    if (!description[name]) {
-      await queryInterface.addColumn(tableName, name, spec);
-      logger.info(`Coluna ${name} adicionada na tabela ${tableName}.`);
+  const missing = columns.filter(([name]) => !columnExists(description, name));
+  if (missing.length) {
+    const connection = await db.sequelize.connectionManager.getConnection({ type: 'write' });
+    try {
+      await queryOnConnection(connection, 'SET SESSION lock_wait_timeout = 8');
+      for (const [name, definition] of missing) {
+        try {
+          await queryOnConnection(connection, `ALTER TABLE \`${tableName}\` ADD COLUMN \`${name}\` ${definition}`);
+          console.log(`Coluna ${name} adicionada na tabela ${tableName}.`);
+        } catch (error) {
+          const code = error?.code || error?.original?.code || error?.parent?.code;
+          if (code === 'ER_DUP_FIELDNAME') continue;
+          console.error(`Não foi possível criar a coluna ${name}:`, error.message || error);
+          logger.error(`Não foi possível criar a coluna ${name}`, error);
+        }
+      }
+    } finally {
+      db.sequelize.connectionManager.releaseConnection(connection);
+    }
+  }
+
+  const refreshed = await queryInterface.describeTable(tableName);
+  for (const [name] of columns) {
+    if (!columnExists(refreshed, name) && db.Settings.rawAttributes[name]) {
+      db.Settings.removeAttribute(name);
+      console.error(`Coluna ${name} indisponível. O site continua no ar e esse limite fica no valor padrão.`);
     }
   }
 }
 
 db.sequelize.sync()
-  .then(async () => {
-    await ensureLimitColumns();
+  .then(() => {
     app.listen(PORT, () => {
       logger.info(`🚀 Servidor rodando na porta ${PORT}`);
       logger.info(`📊 Ambiente: ${process.env.NODE_ENV || 'development'}`);
       logger.info(`🔒 Modo seguro: ${process.env.NODE_ENV === 'production' ? 'ATIVADO' : 'DESATIVADO'}`);
     });
+    ensureLimitColumns().catch((error) => {
+      console.error('Falha ao preparar as colunas de limites:', error);
+      logger.error('Falha ao preparar as colunas de limites', error);
+    });
   })
   .catch(err => {
     logger.error('❌ Erro crítico ao sincronizar com o banco de dados:', err);
+    console.error('Erro crítico ao sincronizar com o banco de dados:', err);
     process.exit(1);
   });
 

@@ -36,6 +36,13 @@ async function dashboard(req, res) {
     });
   } catch (error) {
     console.error('Erro ao carregar o dashboard:', error);
+    if (req.session && req.session.admin) {
+      return res.status(500).render('partials/error', {
+        title: 'Erro ao carregar o painel',
+        message: 'Não foi possível carregar o dashboard. O detalhe ficou registrado no log do servidor.',
+        statusCode: 500
+      });
+    }
     req.flash('error_msg', 'Erro ao carregar os dados do dashboard.');
     res.redirect('/auth/login');
   }
