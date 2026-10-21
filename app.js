@@ -95,6 +95,7 @@ app.use(async (req, res, next) => {
   res.locals.admin = req.session.admin || null;
   res.locals.csrfToken = generateToken(req, res);
   res.locals.currentPath = req.path;
+  res.locals.assetVersion = '20261021-2';
   res.locals.settings = {};
 
   if (req.session && req.session.admin) {
