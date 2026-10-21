@@ -4,6 +4,7 @@ const { formatDateToBR, formatDateToISO } = require('../utils/dateUtils'); // <-
 
 const userService = require('../services/userService');
 const migrationService = require('../services/migrationService');
+const { buildLimitPayload, summarizeLimits } = require('../services/limitsService');
 const db = require('../models');
 
 async function dashboard(req, res) {
@@ -28,6 +29,7 @@ async function dashboard(req, res) {
       admin: req.session.admin,
       users,
       settings,
+      limitSnapshot: summarizeLimits(users, settings),
       distinctYears,
       formatDate: formatDateToBR,
       formatDateISO: formatDateToISO,
@@ -198,16 +200,22 @@ async function migrateUsers(req, res) {
 
 async function updateLimits(req, res) {
   try {
+    const payload = buildLimitPayload(req.body);
     const settings = await Settings.findOne({ where: { id: 1 } });
     if (settings) {
-      await settings.update(req.body);
+      await settings.update(payload);
     } else {
-      await Settings.create(req.body);
+      await Settings.create({
+        max_ipc: 2, max_epc: 2, max_dpc: 2,
+        max_ipc_p: 2, max_epc_p: 2, max_dpc_p: 2,
+        max_ipc_t: 3, max_epc_t: 3, max_dpc_t: 3,
+        ...payload
+      });
     }
     req.flash('success_msg', 'Limites atualizados com sucesso!');
   } catch (error) {
     console.error('Erro ao atualizar limites:', error);
-    req.flash('error_msg', 'Erro ao atualizar os limites.');
+    req.flash('error_msg', error.message || 'Erro ao atualizar os limites.');
   }
   res.redirect('/users/dashboard');
 }

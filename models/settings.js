@@ -61,6 +61,57 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       defaultValue: 3,
       comment: 'Limite máximo total de servidores do grupo DPC (DPC + DPC-P) de férias simultaneamente.'
+    },
+    pct_primeiro_ipc: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 15,
+      comment: 'Percentual do efetivo de IPC que pode iniciar o 1º período ou período único no mesmo mês.'
+    },
+    pct_primeiro_epc: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 15,
+      comment: 'Percentual do efetivo de EPC que pode iniciar o 1º período ou período único no mesmo mês.'
+    },
+    pct_primeiro_dpc: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 15,
+      comment: 'Percentual do efetivo de DPC que pode iniciar o 1º período ou período único no mesmo mês.'
+    },
+    max_seguintes_ipc: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: 'Máximo de servidores de IPC em 2º ou 3º período ao mesmo tempo. Nulo usa 20% do efetivo.'
+    },
+    max_seguintes_epc: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: 'Máximo de servidores de EPC em 2º ou 3º período ao mesmo tempo. Nulo usa 20% do efetivo.'
+    },
+    max_seguintes_dpc: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: 'Máximo de servidores de DPC em 2º ou 3º período ao mesmo tempo. Nulo usa 20% do efetivo.'
+    },
+    tolerancia_dias_ipc: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: 'Dias úteis de choque ignorados entre férias de servidores do cargo IPC.'
+    },
+    tolerancia_dias_epc: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: 'Dias úteis de choque ignorados entre férias de servidores do cargo EPC.'
+    },
+    tolerancia_dias_dpc: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      comment: 'Dias úteis de choque ignorados entre férias de servidores do cargo DPC.'
     }
   });
 

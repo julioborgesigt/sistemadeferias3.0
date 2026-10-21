@@ -19,6 +19,7 @@ const { doubleCsrf } = require('csrf-csrf');
 const db = require('./models');
 const logger = require('./config/logger');
 const constants = require('./config/constants');
+const { countEfetivo, brazilToday } = require('./services/limitsService');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
 
 const app = express();
@@ -95,16 +96,25 @@ app.use(async (req, res, next) => {
   res.locals.admin = req.session.admin || null;
   res.locals.csrfToken = generateToken(req, res);
   res.locals.currentPath = req.path;
-  res.locals.assetVersion = '20261021-2';
+  res.locals.assetVersion = '20261021-3';
   res.locals.settings = {};
+  const hoje = brazilToday();
+  res.locals.anoEfetivo = hoje.year;
+  res.locals.efetivoPorCargo = { IPC: 0, EPC: 0, DPC: 0 };
 
   if (req.session && req.session.admin) {
     try {
       const settings = await db.Settings.findOne({ where: { id: 1 } });
       res.locals.settings = settings || {};
+      const pessoas = await db.User.findAll({
+        attributes: ['categoria'],
+        where: { ano_referencia: hoje.year },
+        raw: true
+      });
+      res.locals.efetivoPorCargo = countEfetivo(pessoas);
     } catch (error) {
       logger.warn('Não foi possível carregar os limites para o menu do administrador.');
-      res.locals.settings = {};
+      res.locals.settings = res.locals.settings || {};
     }
   }
 
@@ -172,8 +182,49 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3010;
 
 // Sincronizar com banco de dados e iniciar servidor
+async function describeSettingsTable(queryInterface) {
+  const resolvedName = db.Settings.getTableName();
+  const candidates = [];
+  if (typeof resolvedName === 'string') candidates.push(resolvedName);
+  else if (resolvedName && resolvedName.tableName) candidates.push(resolvedName.tableName);
+  candidates.push('Settings', 'settings');
+
+  let lastError;
+  for (const tableName of [...new Set(candidates)]) {
+    try {
+      return { tableName, description: await queryInterface.describeTable(tableName) };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
+}
+
+async function ensureLimitColumns() {
+  const queryInterface = db.sequelize.getQueryInterface();
+  const { tableName, description } = await describeSettingsTable(queryInterface);
+  const columns = [
+    ['pct_primeiro_ipc', { type: db.Sequelize.INTEGER, allowNull: false, defaultValue: 15 }],
+    ['pct_primeiro_epc', { type: db.Sequelize.INTEGER, allowNull: false, defaultValue: 15 }],
+    ['pct_primeiro_dpc', { type: db.Sequelize.INTEGER, allowNull: false, defaultValue: 15 }],
+    ['max_seguintes_ipc', { type: db.Sequelize.INTEGER, allowNull: true }],
+    ['max_seguintes_epc', { type: db.Sequelize.INTEGER, allowNull: true }],
+    ['max_seguintes_dpc', { type: db.Sequelize.INTEGER, allowNull: true }],
+    ['tolerancia_dias_ipc', { type: db.Sequelize.INTEGER, allowNull: false, defaultValue: 0 }],
+    ['tolerancia_dias_epc', { type: db.Sequelize.INTEGER, allowNull: false, defaultValue: 0 }],
+    ['tolerancia_dias_dpc', { type: db.Sequelize.INTEGER, allowNull: false, defaultValue: 0 }]
+  ];
+  for (const [name, spec] of columns) {
+    if (!description[name]) {
+      await queryInterface.addColumn(tableName, name, spec);
+      logger.info(`Coluna ${name} adicionada na tabela ${tableName}.`);
+    }
+  }
+}
+
 db.sequelize.sync()
-  .then(() => {
+  .then(async () => {
+    await ensureLimitColumns();
     app.listen(PORT, () => {
       logger.info(`🚀 Servidor rodando na porta ${PORT}`);
       logger.info(`📊 Ambiente: ${process.env.NODE_ENV || 'development'}`);

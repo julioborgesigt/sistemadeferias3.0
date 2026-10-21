@@ -1,6 +1,6 @@
 // services/vacationValidationService.js
 const { isWeekend, diffInDays, formatDateToBR, parseDateToUTC } = require('../utils/dateUtils');
-const { checkVacationLimits } = require('./limitsService');
+const { checkVacationPeriods } = require('./limitsService');
 
 /**
  * Valida um conjunto de períodos de férias contra todas as regras de negócio.
@@ -66,13 +66,15 @@ async function validatePeriods({ user, periods, qtd_periodos_str, ano_referencia
       errors.push(`A data final excede o limite do período concessivo de ${formatDateToBR(maxDate)}.`);
     }
 
-    // Passa a matrícula do usuário para ser excluída da contagem, SE for uma operação de edição
-    const matriculaToExclude = isEditOperation ? user.matricula : null;
-    const limitCheck = await checkVacationLimits(user.categoria, period.inicio, period.fim, ano_referencia, matriculaToExclude);
-    if (!limitCheck.allowed) {
-      errors.push(limitCheck.message);
-    }
   }
+
+  const limitErrors = await checkVacationPeriods({
+    user,
+    periods,
+    ano_referencia,
+    matriculaToExclude: user.matricula
+  });
+  errors.push(...limitErrors);
 
   return {
     isValid: errors.length === 0,

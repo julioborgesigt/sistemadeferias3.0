@@ -5,62 +5,72 @@
 <%- include('partials/editFeriasModal') %>
 
 <div class="row mb-4">
-    <div class="col-12 col-lg-7 mb-4 mb-lg-0">
-        <div class="card h-100 shadow-sm">
+    <div class="col-12 mb-4">
+        <div class="card shadow-sm">
             <div class="card-header">
-                <h5 class="card-title mb-0"><i class="bi bi-bar-chart-line-fill me-2"></i>Tabela de Limites</h5>
+                <h5 class="card-title mb-0"><i class="bi bi-bar-chart-line-fill me-2"></i>Limites por cargo em <%= limitSnapshot.monthLabel %></h5>
             </div>
             <div class="card-body">
-                <%
-                  const currentYear = new Date().getFullYear();
-                  let totals = { IPC: 0, 'IPC-P': 0, EPC: 0, 'EPC-P': 0, DPC: 0, 'DPC-P': 0 };
-                  users.forEach(u => {
-                    if (u.ano_referencia == currentYear && totals.hasOwnProperty(u.categoria)) {
-                      totals[u.categoria]++;
-                    }
-                  });
-                %>
                 <div class="table-responsive small">
-                    <table class="table table-bordered text-center styled-table">
+                    <table class="table table-bordered text-center styled-table mb-2">
                         <thead>
                             <tr>
-                                <th>Atributo</th>
+                                <th class="text-start">Situação</th>
                                 <th>IPC</th>
-                                <th>IPC‑P</th>
                                 <th>EPC</th>
-                                <th>EPC‑P</th>
                                 <th>DPC</th>
-                                <th>DPC‑P</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Limite Indiv.</td>
-                                <td><%= settings.max_ipc %></td>
-                                <td><%= settings.max_ipc_p %></td>
-                                <td><%= settings.max_epc %></td>
-                                <td><%= settings.max_epc_p %></td>
-                                <td><%= settings.max_dpc %></td>
-                                <td><%= settings.max_dpc_p %></td>
+                                <td class="text-start">Efetivo em <%= limitSnapshot.year %></td>
+                                <% ['IPC', 'EPC', 'DPC'].forEach((cargo) => { %>
+                                    <td><%= limitSnapshot.cargos[cargo].efetivo %></td>
+                                <% }); %>
                             </tr>
                             <tr>
-                                <td>Limite Grupo</td>
-                                <td colspan="2"><%= settings.max_ipc_t %></td>
-                                <td colspan="2"><%= settings.max_epc_t %></td>
-                                <td colspan="2"><%= settings.max_dpc_t %></td>
+                                <td class="text-start">Percentual de inícios do 1º período</td>
+                                <% ['IPC', 'EPC', 'DPC'].forEach((cargo) => { %>
+                                    <td><%= limitSnapshot.cargos[cargo].pctPrimeiro %>%</td>
+                                <% }); %>
                             </tr>
                             <tr>
-                                <td>Cadastrados (<%= currentYear %>)</td>
-                                <td><%= totals.IPC %></td>
-                                <td><%= totals['IPC-P'] %></td>
-                                <td><%= totals.EPC %></td>
-                                <td><%= totals['EPC-P'] %></td>
-                                <td><%= totals.DPC %></td>
-                                <td><%= totals['DPC-P'] %></td>
+                                <td class="text-start">Inícios permitidos por mês</td>
+                                <% ['IPC', 'EPC', 'DPC'].forEach((cargo) => { %>
+                                    <td><%= limitSnapshot.cargos[cargo].limiteInicios %></td>
+                                <% }); %>
+                            </tr>
+                            <tr>
+                                <td class="text-start">Inícios do 1º período neste mês</td>
+                                <% ['IPC', 'EPC', 'DPC'].forEach((cargo) => { const item = limitSnapshot.cargos[cargo]; %>
+                                    <td class="<%= item.iniciosNoMes > item.limiteInicios ? 'text-danger fw-semibold' : '' %>"><%= item.iniciosNoMes %></td>
+                                <% }); %>
+                            </tr>
+                            <tr>
+                                <td class="text-start">Limite simultâneo de 2º e 3º períodos</td>
+                                <% ['IPC', 'EPC', 'DPC'].forEach((cargo) => { const item = limitSnapshot.cargos[cargo]; %>
+                                    <td>
+                                        <%= item.maxSeguintes %>
+                                        <div class="text-muted"><%= item.maxSeguintesInformado === null ? '20% do efetivo' : 'definido' %></div>
+                                    </td>
+                                <% }); %>
+                            </tr>
+                            <tr>
+                                <td class="text-start">Em 2º ou 3º período hoje</td>
+                                <% ['IPC', 'EPC', 'DPC'].forEach((cargo) => { const item = limitSnapshot.cargos[cargo]; %>
+                                    <td class="<%= item.emSeguintesHoje > item.maxSeguintes ? 'text-danger fw-semibold' : '' %>"><%= item.emSeguintesHoje %></td>
+                                <% }); %>
+                            </tr>
+                            <tr>
+                                <td class="text-start">Choque ignorado</td>
+                                <% ['IPC', 'EPC', 'DPC'].forEach((cargo) => { %>
+                                    <td><%= limitSnapshot.cargos[cargo].toleranciaDias %> dia(s) útil(eis)</td>
+                                <% }); %>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+                <p class="small text-muted mb-0">IPC-P, EPC-P e DPC-P entram no efetivo do cargo correspondente. O 1º período, inclusive o período único de 30 dias, é limitado pelos inícios no mesmo mês. O 2º e o 3º período podem coincidir até o limite simultâneo; uma sobreposição de até o número de dias úteis configurado não conta como choque.</p>
             </div>
         </div>
     </div>
