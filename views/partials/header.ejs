@@ -10,7 +10,26 @@
   <title><%= pageTitle %></title>
   <link href="/css/bootstrap.min.css" rel="stylesheet">
   <link href="/css/bootstrap-icons.css" rel="stylesheet">
-  <link href="/css/styles.css" rel="stylesheet">
+  <link href="/css/styles.css?v=<%= typeof assetVersion !== 'undefined' ? assetVersion : '1' %>" rel="stylesheet">
+  <style>
+    .skip-link { position: absolute; left: 1rem; top: -3rem; z-index: 2000; }
+    .skip-link:focus { top: 0.75rem; }
+    @media (min-width: 992px) {
+      #appSidebar.offcanvas {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1020;
+        display: flex !important;
+        visibility: visible !important;
+        width: 17rem;
+        max-width: 17rem;
+        transform: none !important;
+      }
+      body:not(.is-guest) .app-main { margin-left: 17rem; }
+    }
+  </style>
 </head>
 <body class="app-body<%= navbarVisible ? '' : ' is-guest' %>">
   <a class="skip-link" href="#conteudo-principal">Ir para o conteúdo</a>
