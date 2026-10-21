@@ -1,0 +1,124 @@
+<%
+  const pathNow = typeof currentPath === 'string' ? currentPath : '';
+  const isCurrent = (href) => {
+    if (href === '/vacations/calendar-options') {
+      return pathNow === '/vacations/calendar-options' || pathNow.startsWith('/vacations/year-calendar');
+    }
+    if (href === '/vacations/admin-form') {
+      return pathNow === '/vacations/admin-form' || pathNow === '/vacations/admin-mark';
+    }
+    if (href === '/users/register') {
+      return pathNow.startsWith('/users/register');
+    }
+    return pathNow === href;
+  };
+  const itemClass = (href) => isCurrent(href) ? 'sidebar-link active' : 'sidebar-link';
+  const adminName = (typeof admin !== 'undefined' && admin && admin.nome) ? admin.nome : '';
+  const initials = adminName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('') || 'AD';
+  const homeHref = adminName ? '/users/dashboard' : '/user';
+%>
+<aside class="offcanvas offcanvas-start app-sidebar" tabindex="-1" id="appSidebar" aria-labelledby="appSidebarLabel">
+  <div class="offcanvas-header app-sidebar-brand">
+    <a class="app-brand" href="<%= homeHref %>" id="appSidebarLabel">
+      <span class="app-brand-mark" aria-hidden="true"><i class="bi bi-calendar2-check"></i></span>
+      <span class="app-brand-text">
+        <span class="app-brand-title">Sistema de Férias</span>
+        <span class="app-brand-subtitle">Servidores públicos</span>
+      </span>
+    </a>
+    <button type="button" class="btn-close d-lg-none" data-bs-dismiss="offcanvas" aria-label="Fechar menu"></button>
+  </div>
+
+  <div class="offcanvas-body app-sidebar-body">
+    <% if (adminName) { %>
+      <div class="sidebar-user">
+        <span class="sidebar-user-avatar" aria-hidden="true"><%= initials %></span>
+        <span class="sidebar-user-meta">
+          <span class="sidebar-user-name"><%= adminName %></span>
+          <span class="sidebar-user-role">Administrador</span>
+        </span>
+      </div>
+    <% } else { %>
+      <p class="sidebar-note">
+        <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
+        Calendário e classificação são públicos. Cadastro, férias e migração de ano exigem o acesso de administrador.
+      </p>
+    <% } %>
+
+    <nav class="sidebar-nav" aria-label="Menu principal">
+      <% if (adminName) { %>
+        <p class="sidebar-section">Navegação</p>
+        <a class="<%= itemClass('/users/dashboard') %>" href="/users/dashboard" <%= isCurrent('/users/dashboard') ? 'aria-current="page"' : '' %>>
+          <i class="bi bi-speedometer2" aria-hidden="true"></i>
+          <span>Dashboard</span>
+        </a>
+        <a class="<%= itemClass('/users/register') %>" href="/users/register" <%= isCurrent('/users/register') ? 'aria-current="page"' : '' %>>
+          <i class="bi bi-person-plus" aria-hidden="true"></i>
+          <span>Cadastrar usuário</span>
+        </a>
+        <a class="<%= itemClass('/vacations/admin-form') %>" href="/vacations/admin-form" <%= isCurrent('/vacations/admin-form') ? 'aria-current="page"' : '' %>>
+          <i class="bi bi-calendar-plus" aria-hidden="true"></i>
+          <span>Cadastrar férias</span>
+        </a>
+      <% } %>
+
+      <p class="sidebar-section">Consultas</p>
+      <% if (!adminName) { %>
+        <a class="<%= itemClass('/user') %>" href="/user" <%= isCurrent('/user') ? 'aria-current="page"' : '' %>>
+          <i class="bi bi-house" aria-hidden="true"></i>
+          <span>Início</span>
+        </a>
+      <% } %>
+      <a class="<%= itemClass('/classification') %>" href="/classification" <%= isCurrent('/classification') ? 'aria-current="page"' : '' %>>
+        <i class="bi bi-list-ol" aria-hidden="true"></i>
+        <span>Classificação</span>
+      </a>
+      <a class="<%= itemClass('/vacations/calendar-options') %>" href="/vacations/calendar-options" <%= isCurrent('/vacations/calendar-options') ? 'aria-current="page"' : '' %>>
+        <i class="bi bi-calendar-event" aria-hidden="true"></i>
+        <span>Calendário</span>
+      </a>
+
+      <% if (adminName) { %>
+        <p class="sidebar-section">Ferramentas</p>
+        <button type="button" class="sidebar-link sidebar-link-emphasis" data-bs-toggle="modal" data-bs-target="#migrateModal">
+          <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
+          <span>
+            <span class="sidebar-link-title">Migrar dados</span>
+            <span class="sidebar-link-hint">Abrir o ano de férias</span>
+          </span>
+        </button>
+        <button type="button" class="sidebar-link" data-bs-toggle="modal" data-bs-target="#configLimitsModal">
+          <i class="bi bi-sliders2" aria-hidden="true"></i>
+          <span>Configurar limites</span>
+        </button>
+        <div class="sidebar-divider" role="separator"></div>
+        <button type="button" class="sidebar-link sidebar-link-caution" data-bs-toggle="modal" data-bs-target="#resetVacationsModal">
+          <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+          <span>Resetar férias</span>
+        </button>
+        <button type="button" class="sidebar-link sidebar-link-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal">
+          <i class="bi bi-trash" aria-hidden="true"></i>
+          <span>Apagar matrícula</span>
+        </button>
+      <% } %>
+    </nav>
+
+    <div class="sidebar-footer">
+      <% if (adminName) { %>
+        <a class="sidebar-link sidebar-link-logout" href="/auth/logout">
+          <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+          <span>Sair</span>
+        </a>
+      <% } else { %>
+        <a class="btn btn-primary w-100" href="/auth/login">
+          <i class="bi bi-shield-lock-fill me-2" aria-hidden="true"></i>Entrar como administrador
+        </a>
+      <% } %>
+    </div>
+  </div>
+</aside>

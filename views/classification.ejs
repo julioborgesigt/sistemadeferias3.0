@@ -1,8 +1,8 @@
+<%- include('partials/header', { title: 'Classificação Geral' }) %>
 <div id="classification-page">
-    <%- include('partials/header', { title: 'Classificação Geral' }) %>
     <%- include('partials/flashMessages') %>
     <% const tables = [ { title: 'Classificação dos IPCs', users: ipcUsers }, { title: 'Classificação dos EPCs', users: epcUsers }, { title: 'Classificação dos DPCs', users: dpcUsers } ]; %>
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
         <h3 class="mb-0">Classificação Geral de Servidores</h3>
         <div class="col-md-3">
             <label for="filter-ano" class="form-label">Filtrar por Ano de Referência:</label>
@@ -38,5 +38,5 @@
         </div>
     </div>
     <% }); %>
-    <%- include('partials/footer') %>
 </div>
+<%- include('partials/footer') %>

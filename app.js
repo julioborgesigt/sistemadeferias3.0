@@ -88,12 +88,25 @@ doubleCsrf({
   ignoredMethods: ['GET', 'HEAD', 'OPTIONS']
 });
 
-// Middleware para disponibilizar mensagens flash e CSRF token nas views
-app.use((req, res, next) => {
+// Middleware para disponibilizar mensagens flash, caminho atual e CSRF token nas views
+app.use(async (req, res, next) => {
   res.locals.success_msg = req.flash('success_msg');
   res.locals.error_msg = req.flash('error_msg');
   res.locals.admin = req.session.admin || null;
   res.locals.csrfToken = generateToken(req, res);
+  res.locals.currentPath = req.path;
+  res.locals.settings = {};
+
+  if (req.session && req.session.admin) {
+    try {
+      const settings = await db.Settings.findOne({ where: { id: 1 } });
+      res.locals.settings = settings || {};
+    } catch (error) {
+      logger.warn('Não foi possível carregar os limites para o menu do administrador.');
+      res.locals.settings = {};
+    }
+  }
+
   next();
 });
 

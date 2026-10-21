@@ -367,41 +367,68 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     initDashboardFilters();
 
-    // ===================================================================
-    // NOVA SEÇÃO: CORREÇÃO DO CONFLITO ENTRE OFFCANVAS E MODAL
-    // ===================================================================
-    const handleOffcanvasModalConflict = () => {
-        const modalTriggersInOffcanvas = document.querySelectorAll('.offcanvas [data-bs-toggle="modal"]');
+    // Em telas pequenas a barra é um offcanvas. O modal só abre depois que ela fecha,
+    // para o fundo escuro do Bootstrap não ficar preso. No desktop a barra é fixa.
+    const handleSidebarModals = () => {
+        const sidebar = document.getElementById('appSidebar');
+        if (!sidebar) return;
 
-        modalTriggersInOffcanvas.forEach(trigger => {
-            trigger.addEventListener('click', function (event) {
-                // Impede que o Bootstrap abra o modal automaticamente
-                event.preventDefault();
+        const desktopQuery = window.matchMedia('(min-width: 992px)');
 
-                const targetModalId = this.getAttribute('data-bs-target');
-                const targetModal = document.querySelector(targetModalId);
+        const normalizeDesktopSidebar = () => {
+            if (!desktopQuery.matches) return;
+            sidebar.style.visibility = '';
+            sidebar.removeAttribute('aria-hidden');
+            sidebar.removeAttribute('aria-modal');
+            if (sidebar.getAttribute('role') === 'dialog') {
+                sidebar.removeAttribute('role');
+            }
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+        };
+
+        const onDesktopChange = () => {
+            if (!desktopQuery.matches) return;
+            const instance = bootstrap.Offcanvas.getInstance(sidebar);
+            if (instance && sidebar.classList.contains('show')) {
+                sidebar.addEventListener('hidden.bs.offcanvas', normalizeDesktopSidebar, { once: true });
+                instance.hide();
+            } else {
+                normalizeDesktopSidebar();
+            }
+        };
+        if (typeof desktopQuery.addEventListener === 'function') {
+            desktopQuery.addEventListener('change', onDesktopChange);
+        } else if (typeof desktopQuery.addListener === 'function') {
+            desktopQuery.addListener(onDesktopChange);
+        }
+
+        sidebar.querySelectorAll('[data-bs-toggle="modal"]').forEach((trigger) => {
+            trigger.addEventListener('click', (event) => {
+                if (desktopQuery.matches) return;
+
+                const targetModal = document.querySelector(trigger.getAttribute('data-bs-target'));
                 if (!targetModal) return;
 
-                const offcanvasEl = this.closest('.offcanvas');
-                const offcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
+                event.preventDefault();
+                event.stopPropagation();
 
-                if (offcanvas && offcanvasEl.classList.contains('show')) {
-                    offcanvasEl.addEventListener('hidden.bs.offcanvas', () => {
-                        
-                        // ===== AQUI ESTÁ A CORREÇÃO =====
-                        // Em vez de 'new bootstrap.Modal()', usamos 'getOrCreateInstance()'.
-                        // Isso previne a criação de múltiplas instâncias que causam o bug do backdrop.
-                        const modal = bootstrap.Modal.getOrCreateInstance(targetModal);
-                        modal.show();
+                const openModal = () => {
+                    const modal = bootstrap.Modal.getOrCreateInstance(targetModal);
+                    modal.show();
+                };
 
-                    }, { once: true });
-
+                if (sidebar.classList.contains('show')) {
+                    const offcanvas = bootstrap.Offcanvas.getInstance(sidebar) || new bootstrap.Offcanvas(sidebar);
+                    sidebar.addEventListener('hidden.bs.offcanvas', openModal, { once: true });
                     offcanvas.hide();
+                } else {
+                    openModal();
                 }
             });
         });
     };
-    handleOffcanvasModalConflict(); // Ativa a correção
+    handleSidebarModals();
 
     // ===================================================================
     // NOVA FUNÇÃO: LÓGICA DO FORMULÁRIO DE CADASTRO DE FÉRIAS (ADMIN)
