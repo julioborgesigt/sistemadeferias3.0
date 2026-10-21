@@ -481,3 +481,50 @@ body.is-guest .login-page-wrapper {
   from { width: 100%; }
   to { width: 0%; }
 }
+
+.filter-bar {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.filter-field .form-label {
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+}
+
+.filter-field-nome {
+  flex: 1 1 auto;
+  min-width: 12rem;
+}
+
+.filter-field-matricula {
+  flex: 0 0 9rem;
+}
+
+.filter-field-ano {
+  flex: 0 0 6.5rem;
+}
+
+.filter-field-mes {
+  flex: 0 0 8rem;
+}
+
+.filter-field .form-control,
+.filter-field .form-select {
+  width: 100%;
+}
+
+@media (max-width: 767.98px) {
+  .filter-bar {
+    flex-wrap: wrap;
+  }
+
+  .filter-field-nome,
+  .filter-field-matricula,
+  .filter-field-ano,
+  .filter-field-mes {
+    flex: 1 1 100%;
+  }
+}
