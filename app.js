@@ -20,6 +20,7 @@ const db = require('./models');
 const logger = require('./config/logger');
 const constants = require('./config/constants');
 const { countEfetivo, brazilToday } = require('./services/limitsService');
+const { LOTACOES, garantirParesPadrao } = require('./services/lotacaoService');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
 
 const app = express();
@@ -97,7 +98,8 @@ app.use(async (req, res, next) => {
     res.locals.admin = req.session.admin || null;
     res.locals.csrfToken = generateToken(req, res);
     res.locals.currentPath = req.path;
-    res.locals.assetVersion = '20261021-5';
+    res.locals.assetVersion = '20261021-6';
+    res.locals.lotacoes = LOTACOES;
     res.locals.settings = {};
     const hoje = brazilToday();
     res.locals.anoEfetivo = hoje.year;
@@ -187,12 +189,12 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3010;
 
 // Sincronizar com banco de dados e iniciar servidor
-async function describeSettingsTable(queryInterface) {
-  const resolvedName = db.Settings.getTableName();
+async function describeModelTable(queryInterface, model, fallbacks) {
+  const resolvedName = model.getTableName();
   const candidates = [];
   if (typeof resolvedName === 'string') candidates.push(resolvedName);
   else if (resolvedName && resolvedName.tableName) candidates.push(resolvedName.tableName);
-  candidates.push('Settings', 'settings');
+  candidates.push(...fallbacks);
 
   let lastError;
   for (const tableName of [...new Set(candidates)]) {
@@ -203,6 +205,10 @@ async function describeSettingsTable(queryInterface) {
     }
   }
   throw lastError;
+}
+
+async function describeSettingsTable(queryInterface) {
+  return describeModelTable(queryInterface, db.Settings, ['Settings', 'settings']);
 }
 
 function columnExists(description, name) {
@@ -217,6 +223,51 @@ function queryOnConnection(connection, sql) {
   return new Promise((resolve, reject) => {
     native.query(sql, (error, results) => error ? reject(error) : resolve(results));
   });
+}
+
+async function ensureModelColumns(model, fallbacks, columns) {
+  const queryInterface = db.sequelize.getQueryInterface();
+  const { tableName, description } = await describeModelTable(queryInterface, model, fallbacks);
+  const missing = columns.filter(([name]) => !columnExists(description, name));
+  if (missing.length) {
+    const connection = await db.sequelize.connectionManager.getConnection({ type: 'write' });
+    try {
+      await queryOnConnection(connection, 'SET SESSION lock_wait_timeout = 8');
+      for (const [name, definition] of missing) {
+        try {
+          await queryOnConnection(connection, `ALTER TABLE \`${tableName}\` ADD COLUMN \`${name}\` ${definition}`);
+          console.log(`Coluna ${name} adicionada na tabela ${tableName}.`);
+        } catch (error) {
+          const code = error?.code || error?.original?.code || error?.parent?.code;
+          if (code === 'ER_DUP_FIELDNAME') continue;
+          console.error(`Não foi possível criar a coluna ${name}:`, error.message || error);
+          logger.error(`Não foi possível criar a coluna ${name}`, error);
+        }
+      }
+    } finally {
+      db.sequelize.connectionManager.releaseConnection(connection);
+    }
+  }
+
+  const refreshed = await queryInterface.describeTable(tableName);
+  for (const [name] of columns) {
+    if (!columnExists(refreshed, name) && model.rawAttributes[name]) {
+      model.removeAttribute(name);
+      console.error(`Coluna ${name} indisponível em ${tableName}. O site continua no ar.`);
+    }
+  }
+}
+
+async function ensureSchemaChanges() {
+  await ensureLimitColumns();
+  await ensureModelColumns(db.User, ['Users', 'users'], [
+    ['lotacao', "VARCHAR(80) NOT NULL DEFAULT 'Iguatu'"]
+  ]);
+  await ensureModelColumns(db.Vacation, ['Vacations', 'vacations'], [
+    ['aprovado_com_choque', 'TINYINT(1) NOT NULL DEFAULT 0'],
+    ['aviso_choque', 'TEXT NULL']
+  ]);
+  await garantirParesPadrao();
 }
 
 async function ensureLimitColumns() {
@@ -270,9 +321,9 @@ db.sequelize.sync()
       logger.info(`📊 Ambiente: ${process.env.NODE_ENV || 'development'}`);
       logger.info(`🔒 Modo seguro: ${process.env.NODE_ENV === 'production' ? 'ATIVADO' : 'DESATIVADO'}`);
     });
-    ensureLimitColumns().catch((error) => {
-      console.error('Falha ao preparar as colunas de limites:', error);
-      logger.error('Falha ao preparar as colunas de limites', error);
+    ensureSchemaChanges().catch((error) => {
+      console.error('Falha ao preparar o banco para lotação e limites:', error);
+      logger.error('Falha ao preparar o banco para lotação e limites', error);
     });
   })
   .catch(err => {

@@ -11,6 +11,9 @@
                 <input type="text" name="nome" id="edit_nome" class="form-control" value="<%= user.nome %>" required>
             </div>
             <div class="col-md-6">
+                <%- include('partials/lotacaoField', { selecionada: user.lotacao || 'Iguatu', fieldId: 'edit_lotacao' }) %>
+            </div>
+            <div class="col-md-6">
                 <label for="edit_categoria" class="form-label">Categoria:</label>
                 <select name="categoria" id="edit_categoria" class="form-select">
                     <option value="IPC" <%= user.categoria === 'IPC' ? 'selected' : '' %>>IPC</option>

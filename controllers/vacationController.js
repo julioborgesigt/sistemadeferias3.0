@@ -4,6 +4,7 @@ const { Op } = require('sequelize');
 const db = require('../models');
 const { parseDateToUTC, formatDateToISO, formatDateToBR } = require('../utils/dateUtils');
 const validationService = require('../services/vacationValidationService');
+const { relatorio } = require('../services/lotacaoService');
 
 async function showAdminVacationForm(req, res) {
   try {
@@ -16,7 +17,7 @@ async function showAdminVacationForm(req, res) {
       where: db.sequelize.literal('`Vacations`.`id` IS NULL'),
       order: [['nome', 'ASC']]
     });
-    res.render('admin_vacation_form', { users, old: {} });
+    res.render('admin_vacation_form', { users, old: {}, clashes: [] });
   } catch (error) {
     console.error('Erro ao carregar formulário de férias do admin:', error);
     req.flash('error_msg', 'Erro ao carregar a lista de usuários.');
@@ -44,29 +45,33 @@ async function adminMarkVacation(req, res) {
       }
     }
 
+    const ignorarChoques = req.body.ignorar_choques === '1' || req.body.ignorar_choques === 'on';
     const validationResult = await validationService.validatePeriods({
-      user, periods, qtd_periodos_str, ano_referencia
+      user, periods, qtd_periodos_str, ano_referencia, ignorarChoques
     });
 
-    // ===== MUDANÇA IMPORTANTE AQUI =====
-    // Se a validação falhar, usamos a mensagem detalhada do resultado.
     if (!validationResult.isValid) {
-      // Usamos .join('<br>') para exibir a lista de erros de forma legível no toast.
-      req.flash('error_msg', validationResult.errors.join('<br>'));
-      
-      const users = await User.findAll({ where: { /* lógica para buscar usuários pendentes */ } });
+      const mensagens = validationResult.errors.length ? validationResult.errors : validationResult.clashes;
+      req.flash('error_msg', mensagens.join(' '));
+      const users = await User.findAll({ order: [['nome', 'ASC']] });
       return res.render('admin_vacation_form', {
         users,
         old: req.body,
+        clashes: validationResult.clashes || [],
         error_msg: req.flash('error_msg')
       });
     }
 
-    // Se a validação passou, cria os registros.
+    const aviso = (validationResult.clashes || []).join('\n');
     for (let i = 0; i < periods.length; i++) {
-      await Vacation.create({
+      const registro = {
         matricula, periodo: i + 1, data_inicio: periods[i].inicio, data_fim: periods[i].fim, ano_referencia,
-      });
+      };
+      if (Vacation.rawAttributes.aprovado_com_choque) {
+        registro.aprovado_com_choque = ignorarChoques && Boolean(aviso);
+        registro.aviso_choque = registro.aprovado_com_choque ? aviso : null;
+      }
+      await Vacation.create(registro);
     }
 
     req.flash('success_msg', `Férias para ${user.nome} cadastradas com sucesso!`);
@@ -138,26 +143,39 @@ async function updateVacation(req, res) {
             return res.json({ success: true, message: 'Férias removidas com sucesso!' });
         }
         
+        const ignorarChoques = req.body.ignorar_choques === '1' || req.body.ignorar_choques === 'on';
         const validationResult = await validationService.validatePeriods({
-            user, periods, qtd_periodos_str, ano_referencia: ano, isEditOperation: true
+            user, periods, qtd_periodos_str, ano_referencia: ano, ignorarChoques
         });
 
-        // ===== MUDANÇA IMPORTANTE AQUI =====
-        // Se a validação falhar, retorna um erro 400 com a mensagem detalhada.
         if (!validationResult.isValid) {
             await t.rollback();
-            // Usamos .join(', ') para a resposta JSON.
-            return res.status(400).json({ success: false, message: validationResult.errors.join(', ') });
+            if ((validationResult.clashes || []).length && validationResult.errors.length === 0) {
+                return res.status(409).json({
+                    success: false,
+                    requerAprovacao: true,
+                    clashes: validationResult.clashes,
+                    message: validationResult.clashes.join(' ')
+                });
+            }
+            return res.status(400).json({ success: false, message: validationResult.errors.join(' ') });
         }
 
+        const aviso = (validationResult.clashes || []).join('\n');
         for (let i = 0; i < periods.length; i++) {
-            await Vacation.create({
+            const registro = {
                 matricula, periodo: i + 1, data_inicio: periods[i].inicio, data_fim: periods[i].fim, ano_referencia: ano,
-            }, { transaction: t });
+            };
+            if (Vacation.rawAttributes.aprovado_com_choque) {
+                registro.aprovado_com_choque = ignorarChoques && Boolean(aviso);
+                registro.aviso_choque = registro.aprovado_com_choque ? aviso : null;
+            }
+            await Vacation.create(registro, { transaction: t });
         }
 
         await t.commit();
-        return res.json({ success: true, message: 'Férias reagendadas com sucesso!' });
+        const complemento = aviso ? ' A aprovação ficou registrada como pendência.' : '';
+        return res.json({ success: true, message: `Férias reagendadas com sucesso!${complemento}` });
 
     } catch (error) {
         // Este 'catch' agora lida com erros inesperados, não erros de validação.
@@ -270,6 +288,26 @@ function showCalendarOptions(req, res) {
   res.render('calendar_options');
 }
 
+async function showChoques(req, res) {
+  try {
+    const ano = req.query.year ? parseInt(req.query.year, 10) : new Date().getFullYear();
+    const dados = await relatorio(ano);
+    const anos = await User.findAll({
+      attributes: [[db.sequelize.fn('DISTINCT', db.sequelize.col('ano_referencia')), 'ano_referencia']],
+      order: [['ano_referencia', 'DESC']],
+      raw: true
+    });
+    res.render('choques', {
+      ...dados,
+      anos: anos.map((item) => item.ano_referencia)
+    });
+  } catch (error) {
+    console.error('Erro ao montar choques:', error);
+    req.flash('error_msg', 'Não foi possível montar a tabela de choques.');
+    res.redirect('/users/dashboard');
+  }
+}
+
 module.exports = {
-  showAdminVacationForm, adminMarkVacation, editVacationForm, updateVacation, showYearCalendar, showCalendarOptions,
+  showAdminVacationForm, adminMarkVacation, editVacationForm, updateVacation, showYearCalendar, showCalendarOptions, showChoques,
 };

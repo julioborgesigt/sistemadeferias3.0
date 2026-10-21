@@ -1,6 +1,7 @@
 // services/vacationValidationService.js
 const { isWeekend, diffInDays, formatDateToBR, parseDateToUTC } = require('../utils/dateUtils');
 const { checkVacationPeriods } = require('./limitsService');
+const { choquesDoPedido } = require('./lotacaoService');
 
 /**
  * Valida um conjunto de períodos de férias contra todas as regras de negócio.
@@ -12,7 +13,7 @@ const { checkVacationPeriods } = require('./limitsService');
  * @param {number} params.ano_referencia - O ano de referência das férias.
  * @returns {Promise<{isValid: boolean, errors: string[]}>} - Um objeto indicando se os períodos são válidos e uma lista de erros.
  */
-async function validatePeriods({ user, periods, qtd_periodos_str, ano_referencia, isEditOperation = false }) {
+async function validatePeriods({ user, periods, qtd_periodos_str, ano_referencia, ignorarChoques = false }) {
   const errors = [];
 
   // <-- NOVA VERIFICAÇÃO: Garante que os períodos não se sobreponham entre si
@@ -68,17 +69,21 @@ async function validatePeriods({ user, periods, qtd_periodos_str, ano_referencia
 
   }
 
-  const limitErrors = await checkVacationPeriods({
-    user,
-    periods,
-    ano_referencia,
-    matriculaToExclude: user.matricula
-  });
-  errors.push(...limitErrors);
+  const clashes = [
+    ...await checkVacationPeriods({
+      user,
+      periods,
+      ano_referencia,
+      matriculaToExclude: user.matricula
+    }),
+    ...await choquesDoPedido({ user, periods, ano_referencia })
+  ];
+  const podeIgnorar = ignorarChoques && errors.length === 0;
 
   return {
-    isValid: errors.length === 0,
-    errors: errors
+    isValid: errors.length === 0 && (clashes.length === 0 || podeIgnorar),
+    errors,
+    clashes
   };
 }
 

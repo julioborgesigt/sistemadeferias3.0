@@ -149,6 +149,7 @@
                         <th>Nome</th>
                         <th class="hide-mobile">Matrícula</th>
                         <th class="hide-mobile">Cargo</th>
+                        <th class="hide-mobile">Lotação</th>
                         <th class="hide-mobile">Ano</th>
                         <th class="hide-mobile" title="Gestante">Gest.</th>
                         <th class="hide-mobile" title="Qtd. Filhos">Filhos</th>
@@ -169,6 +170,7 @@
                             <td><%= user.nome %></td>
                             <td class="hide-mobile"><%= user.matricula %></td>
                             <td class="hide-mobile"><%= user.categoria %></td>
+                            <td class="hide-mobile"><%= user.lotacao || 'Iguatu' %></td>
                             <td class="hide-mobile"><%= user.ano_referencia %></td>
                             <td class="hide-mobile"><%= user.gestante ? 'Sim' : 'Não' %></td>
                             <td class="hide-mobile"><%= user.qtd_filhos %></td>

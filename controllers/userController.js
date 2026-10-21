@@ -5,6 +5,7 @@ const { formatDateToBR, formatDateToISO } = require('../utils/dateUtils'); // <-
 const userService = require('../services/userService');
 const migrationService = require('../services/migrationService');
 const { buildLimitPayload, summarizeLimits } = require('../services/limitsService');
+const { LOTACOES, listarPares, adicionarPar, removerPar } = require('../services/lotacaoService');
 const db = require('../models');
 
 async function dashboard(req, res) {
@@ -268,6 +269,38 @@ async function showClassification(req, res) {
   }
 }
 
+async function showCoberturas(req, res) {
+  try {
+    const pares = await listarPares();
+    res.render('coberturas', { pares, lotacoes: LOTACOES });
+  } catch (error) {
+    console.error('Erro ao carregar coberturas:', error);
+    req.flash('error_msg', 'Não foi possível carregar as coberturas.');
+    res.redirect('/users/dashboard');
+  }
+}
+
+async function createCobertura(req, res) {
+  try {
+    await adicionarPar(req.body.lotacao_a, req.body.lotacao_b);
+    req.flash('success_msg', 'Cobertura recíproca salva.');
+  } catch (error) {
+    req.flash('error_msg', error.message);
+  }
+  res.redirect('/users/coberturas');
+}
+
+async function deleteCobertura(req, res) {
+  try {
+    await removerPar(req.body.id);
+    req.flash('success_msg', 'Cobertura removida.');
+  } catch (error) {
+    req.flash('error_msg', error.message);
+  }
+  res.redirect('/users/coberturas');
+}
+
 module.exports = {
-  dashboard, showRegistrationForm, registerUser, editUserForm, updateUser, deleteUser, resetVacations, migrateUsers, updateLimits, showClassification, getUserYears
+  dashboard, showRegistrationForm, registerUser, editUserForm, updateUser, deleteUser, resetVacations, migrateUsers, updateLimits, showClassification, getUserYears,
+  showCoberturas, createCobertura, deleteCobertura
 };

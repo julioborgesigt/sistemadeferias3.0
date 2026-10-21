@@ -282,6 +282,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const result = await response.json();
 
+                if (response.status === 409 && result.requerAprovacao) {
+                    let aviso = editForm.querySelector('.choque-aprovacao');
+                    if (!aviso) {
+                        aviso = document.createElement('div');
+                        aviso.className = 'alert alert-warning choque-aprovacao';
+                        editForm.prepend(aviso);
+                    }
+                    aviso.textContent = '';
+                    const titulo = document.createElement('strong');
+                    titulo.textContent = 'Choque de férias. A marcação fica bloqueada até a sua aprovação.';
+                    aviso.appendChild(titulo);
+                    const lista = document.createElement('ul');
+                    lista.className = 'mb-2 mt-2';
+                    (result.clashes || [result.message]).forEach((texto) => {
+                        const item = document.createElement('li');
+                        item.textContent = texto;
+                        lista.appendChild(item);
+                    });
+                    aviso.appendChild(lista);
+                    const botao = document.createElement('button');
+                    botao.type = 'button';
+                    botao.className = 'btn btn-warning btn-sm';
+                    botao.textContent = 'Aprovar mesmo assim';
+                    botao.addEventListener('click', () => {
+                        let campo = editForm.querySelector('[name="ignorar_choques"]');
+                        if (!campo) {
+                            campo = document.createElement('input');
+                            campo.type = 'hidden';
+                            campo.name = 'ignorar_choques';
+                            editForm.appendChild(campo);
+                        }
+                        campo.value = '1';
+                        editForm.requestSubmit();
+                    });
+                    aviso.appendChild(botao);
+                    return;
+                }
+
                 showToast(result.message, response.ok ? 'success' : 'error');
                 
                 if (response.ok) {
@@ -486,7 +524,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const table = document.getElementById(tableId);
             const data = [];
             const headers = [];
-            const visibleColumns = simplified ? [1, 2, 13] : Array.from(Array(15).keys()); // Colunas: Nº, Nome, Férias
+            const visibleColumns = simplified ? [1, 2, 14] : Array.from(Array(15).keys()); // Nº, Nome e Férias no PDF simplificado
 
             // Cabeçalhos
             table.querySelectorAll("thead tr th").forEach((th, index) => {

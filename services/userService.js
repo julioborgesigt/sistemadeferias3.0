@@ -4,6 +4,13 @@ const { User, Vacation } = require('../models');
 const { Op } = require('sequelize');
 const classificationService = require('./classificationService');
 const { diffInDays, parseDateToUTC } = require('../utils/dateUtils');
+const { normalizarLotacao } = require('./lotacaoService');
+
+function lotacaoInformada(valor) {
+  const lotacao = normalizarLotacao(valor || 'Iguatu');
+  if (!lotacao) throw new Error('Selecione uma lotação da lista.');
+  return lotacao;
+}
 
 async function createUser(userData) {
   const { matricula, ano_referencia } = userData;
@@ -19,6 +26,7 @@ async function createUser(userData) {
     possui_conjuge: userData.possui_conjuge === 'on',
     qtd_filhos: parseInt(userData.qtd_filhos) || 0,
   };
+  if (User.rawAttributes.lotacao) preparedData.lotacao = lotacaoInformada(userData.lotacao);
   if (preparedData.data_ingresso && preparedData.data_nascimento && preparedData.ano_referencia) {
     const referenceDate = new Date(preparedData.ano_referencia, 11, 31);
     const dataIngresso = parseDateToUTC(preparedData.data_ingresso);
@@ -37,6 +45,7 @@ async function updateUser(matricula, ano, updateData) {
     const user = await User.findOne({ where: { matricula, ano_referencia: ano } });
     if (!user) { throw new Error('Usuário não encontrado para atualização.'); }
     const preparedData = { ...updateData, gestante: updateData.gestante === 'on', estudante: updateData.estudante === 'on', doisvinculos: updateData.doisvinculos === 'on', possui_conjuge: updateData.possui_conjuge === 'on', qtd_filhos: parseInt(updateData.qtd_filhos) || 0, };
+    if (User.rawAttributes.lotacao) preparedData.lotacao = lotacaoInformada(updateData.lotacao);
     const dataForCalc = { ...user.toJSON(), ...preparedData };
     if (dataForCalc.data_ingresso && dataForCalc.data_nascimento && dataForCalc.ano_referencia) {
         const referenceDate = new Date(dataForCalc.ano_referencia, 11, 31);
