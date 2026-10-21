@@ -1,8 +1,17 @@
-</main> <script src="/js/bootstrap.bundle.min.js"></script>
-  
+      </main>
+    </div>
+  </div>
+
+  <% if (typeof admin !== 'undefined' && admin) { %>
+    <%- include('configLimitsModal', { settings: (typeof settings !== 'undefined' && settings) ? settings : {} }) %>
+    <%- include('deleteUserModal') %>
+    <%- include('resetVacationsModal') %>
+    <%- include('migrateModal') %>
+  <% } %>
+
+  <script src="/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
   <script src="/js/scripts.js"></script>
-
 </body>
 </html>
