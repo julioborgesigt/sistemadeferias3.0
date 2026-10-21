@@ -75,22 +75,22 @@
         </div>
     </div>
 
-    <div class="col-12 col-lg-5">
-        <div class="card h-100 shadow-sm">
+    <div class="col-12">
+        <div class="card shadow-sm">
             <div class="card-header">
                 <h5 class="card-title mb-0"><i class="bi bi-funnel-fill me-2"></i>Filtros de Exibição</h5>
             </div>
             <div class="card-body filter-container">
-                <div class="row g-2">
-                    <div class="col-sm-6">
+                <div class="filter-bar">
+                    <div class="filter-field filter-field-nome">
                         <label for="filter-nome" class="form-label">Nome:</label>
                         <input type="text" id="filter-nome" class="form-control form-control-sm" placeholder="Filtrar por nome">
                     </div>
-                    <div class="col-sm-6">
+                    <div class="filter-field filter-field-matricula">
                         <label for="filter-matricula" class="form-label">Matrícula:</label>
-                        <input type="text" id="filter-matricula" class="form-control form-control-sm" placeholder="Filtrar por matrícula">
+                        <input type="text" id="filter-matricula" class="form-control form-control-sm" placeholder="00000000" maxlength="8">
                     </div>
-                    <div class="col-sm-6">
+                    <div class="filter-field filter-field-ano">
                         <label for="filter-ano" class="form-label">Ano:</label>
                         <select id="filter-ano" class="form-select form-select-sm">
                             <option value="">Todos</option>
@@ -99,8 +99,8 @@
                             <% }); %>
                         </select>
                     </div>
-                    <div class="col-sm-6">
-                        <label for="filter-mes" class="form-label">Mês (Férias):</label>
+                    <div class="filter-field filter-field-mes">
+                        <label for="filter-mes" class="form-label">Mês:</label>
                         <select id="filter-mes" class="form-select form-select-sm">
                             <option value="">Todos</option>
                             <option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option>
