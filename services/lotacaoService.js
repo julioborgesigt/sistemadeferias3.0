@@ -82,11 +82,17 @@ function parceirasDe(lotacao, pares) {
   return destino;
 }
 
-function avaliarChoquesLotacao({ lotacao, periodos, pares, outrasPessoas, toleranciaDias }) {
+function ehDpc(categoria) {
+  return cargoFromCategoria(categoria) === 'DPC';
+}
+
+function avaliarChoquesLotacao({ categoria, lotacao, periodos, pares, outrasPessoas, toleranciaDias }) {
+  if (!ehDpc(categoria)) return [];
   const parceiras = parceirasDe(lotacao, pares);
   if (!parceiras.size) return [];
   const mensagens = [];
   for (const pessoa of outrasPessoas) {
+    if (!ehDpc(pessoa.categoria)) continue;
     if (!parceiras.has(pessoa.lotacao)) continue;
     for (const periodoNovo of periodos) {
       const inicio = utcDateOnly(periodoNovo.inicio);
@@ -99,7 +105,7 @@ function avaliarChoquesLotacao({ lotacao, periodos, pares, outrasPessoas, tolera
         const dias = businessOverlapDays(inicio, fim, [{ inicio: inicioExistente, fim: fimExistente }]);
         if (dias > toleranciaDias) {
           mensagens.push(
-            `${lotacao} e ${pessoa.lotacao} se cobrem nas férias. O período coincide com ${pessoa.nome} (${pessoa.lotacao}), de ${formatDateToBR(inicioExistente)} a ${formatDateToBR(fimExistente)}, em ${dias} dia(s) útil(eis).`
+            `DPCs de ${lotacao} e ${pessoa.lotacao} se cobrem nas férias. O período coincide com ${pessoa.nome} (DPC, ${pessoa.lotacao}), de ${formatDateToBR(inicioExistente)} a ${formatDateToBR(fimExistente)}, em ${dias} dia(s) útil(eis).`
           );
         }
       }
@@ -109,7 +115,7 @@ function avaliarChoquesLotacao({ lotacao, periodos, pares, outrasPessoas, tolera
 }
 
 async function choquesDoPedido({ user, periods, ano_referencia }) {
-  if (!User.rawAttributes.lotacao) return [];
+  if (!User.rawAttributes.lotacao || !ehDpc(user.categoria)) return [];
   const lotacao = normalizarLotacao(user.lotacao) || user.lotacao || 'Iguatu';
   const pares = await listarPares();
   const parceiras = [...parceirasDe(lotacao, pares)];
@@ -119,6 +125,7 @@ async function choquesDoPedido({ user, periods, ano_referencia }) {
     where: {
       ano_referencia: Number(ano_referencia),
       lotacao: { [Op.in]: parceiras },
+      categoria: { [Op.in]: ['DPC', 'DPC-P'] },
       matricula: { [Op.ne]: String(user.matricula) }
     },
     include: [{ model: Vacation, required: false }],
@@ -131,6 +138,7 @@ async function choquesDoPedido({ user, periods, ano_referencia }) {
 
   const outrasPessoas = pessoas.map((pessoa) => ({
     nome: pessoa.nome,
+    categoria: pessoa.categoria,
     lotacao: pessoa.lotacao,
     ferias: (pessoa.Vacations || [])
       .filter((ferias) => Number(ferias.ano_referencia) === Number(ano_referencia))
@@ -138,6 +146,7 @@ async function choquesDoPedido({ user, periods, ano_referencia }) {
   }));
 
   return avaliarChoquesLotacao({
+    categoria: user.categoria,
     lotacao,
     periodos: periods,
     pares,
@@ -170,6 +179,7 @@ async function relatorio(ano) {
     for (let j = i + 1; j < usuarios.length; j += 1) {
       const primeiro = usuarios[i];
       const segundo = usuarios[j];
+      if (!ehDpc(primeiro.categoria) || !ehDpc(segundo.categoria)) continue;
       const parceiras = parceirasDe(primeiro.lotacao, pares);
       if (!parceiras.has(segundo.lotacao)) continue;
       const feriasA = (primeiro.Vacations || []).filter((item) => Number(item.ano_referencia) === anoNumero);
@@ -224,6 +234,7 @@ module.exports = {
   LOTACOES,
   adicionarPar,
   avaliarChoquesLotacao,
+  ehDpc,
   choquesDoPedido,
   garantirParesPadrao,
   listarPares,
