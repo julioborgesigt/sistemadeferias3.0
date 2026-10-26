@@ -4,7 +4,7 @@
 <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
   <div>
     <h3 class="mb-1">Choques e pendências</h3>
-    <p class="text-muted mb-0">Ano <%= ano %>. Coberturas recíprocas e marcações ainda sem férias.</p>
+    <p class="text-muted mb-0">Ano <%= ano %>. O choque entre lotações que se cobrem considera apenas DPCs.</p>
   </div>
   <div class="d-flex gap-2">
     <form method="GET" action="/vacations/choques" class="d-flex gap-2">
@@ -21,7 +21,7 @@
 </div>
 
 <div class="card shadow-sm mb-4">
-  <div class="card-header"><h5 class="mb-0">Choques entre lotações que se cobrem</h5></div>
+  <div class="card-header"><h5 class="mb-0">Choques entre DPCs de lotações que se cobrem</h5></div>
   <div class="card-body table-responsive">
     <table class="table table-sm" id="tabela-choques">
       <thead>
